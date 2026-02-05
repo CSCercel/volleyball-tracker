@@ -1,0 +1,25 @@
+# Python
+.venv/
+.env
+__pycache__/
+.python-version
+
+# Database Files
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# Jupyter Notebook
+.ipynb_checkpoints
