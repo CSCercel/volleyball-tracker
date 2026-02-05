@@ -4,6 +4,7 @@ from app.models import Base, Player
 from app.database import create_db_and_tables, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
+from app.routers import players, matches
 
 
 @asynccontextmanager
@@ -41,3 +42,7 @@ def root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+# Include routers
+app.include_router(players.router)
+app.include_router(matches.router)

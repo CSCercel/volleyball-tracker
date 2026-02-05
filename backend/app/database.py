@@ -1,14 +1,21 @@
+import os
+from dotenv import load_dotenv
+
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import DeclarativeBase
 
 
-DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+# Load environment variables from .env file
+load_dotenv()
 
-# Create a Base class that all models will inherit from
-class Base(DeclarativeBase):
-    pass
+# Get database URL from environment variable
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
+
+# Create a Base class for our models to inherit from
+Base = declarative_base()
 
 # Create DB 
 engine = create_async_engine(DATABASE_URL)

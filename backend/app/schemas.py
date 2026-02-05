@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Literal
 from datetime import datetime
-from .models import MatchType, MatchOutcome
+from app.models import MatchType, MatchOutcome
 
 
 class PlayerBase(BaseModel):
