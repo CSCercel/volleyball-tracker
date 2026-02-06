@@ -14,19 +14,3 @@ router = APIRouter(
     prefix="/matches",
     tags=["matches"]
 )
-
-
-@router.post("/", response_model=MatchDetailResponse, status_code=status.HTTP_201_CREATED)
-def create_match(match: MatchCreate, db: AsyncSession = Depends(get_async_session)):
-
-
-@router.get("/", response_model=List[MatchResponse])
-def list_matches(db: AsyncSession = Depends(get_async_session)):
-
-
-@router.get("/{match_id}", response_model=MatchDetailResponse)
-def get_match(match_id: int, db: AsyncSession = Depends(get_async_session)):
-
-
-@router.post("/draft-teams", response_model=TeamDraftResponse)
-def draft_teams(request: TeamDraftRequest, db: AsyncSession = Depends(get_async_session)):
