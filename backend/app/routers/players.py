@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
 from app.database import get_async_session
-from app.models import Player
-from app.schemas import PlayerCreate, PlayerResponse
+from app.models import Player, PlayerStats
+from app.schemas import MatchType, PlayerCreate, PlayerResponse
 
 
 router = APIRouter(
@@ -14,12 +14,17 @@ router = APIRouter(
 )
 
 
-@router.post("/create", response_model=PlayerResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/create")
 async def create_player(
         player: PlayerCreate, 
         session: AsyncSession = Depends(get_async_session)
-):
+) -> PlayerResponse:
     new_player = Player(name=player.name)
+
+    new_player.stats = [
+        PlayerStats(match_type=MatchType.indoor),
+        PlayerStats(match_type=MatchType.beach)
+    ]
 
     # Write to database
     session.add(new_player)
@@ -28,19 +33,21 @@ async def create_player(
 
     return new_player
 
-@router.get("/roster", response_model=List[PlayerResponse])
-async def list_players(session: AsyncSession = Depends(get_async_session)):
+@router.get("/roster")
+async def list_players(
+        session: AsyncSession = Depends(get_async_session)
+) -> List[PlayerResponse]:
     response = await session.execute(select(Player).order_by(Player.name))
 
     players = [row[0] for row in response.all()]
 
     return players
 
-@router.get("/roster/{name}", response_model=PlayerResponse)
+@router.get("/roster/{name}")
 async def get_player(
         name: str,
         session: AsyncSession = Depends(get_async_session)
-):
+) -> PlayerResponse:
     response = await session.execute(select(Player).where(Player.name == name))
     
     return response.scalar_one_or_none()
