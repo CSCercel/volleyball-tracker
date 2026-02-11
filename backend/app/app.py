@@ -1,22 +1,18 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.models import Base, Player
-from app.database import create_db_and_tables, get_async_session
-from sqlalchemy.ext.asyncio import AsyncSession
-from contextlib import asynccontextmanager
+from app.database import engine, Base
 from app.routers import players
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await create_db_and_tables()
-    yield
+# Create database tables
+Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(
     title="Volleyball Tracker API",
     description="API for tracking volleyball games and player statistics",
-    version="0.1.0",
-    lifespan=lifespan
+    version="0.1.0"
 )
 
 app.add_middleware(
@@ -35,7 +31,7 @@ app.add_middleware(
 def root():
     return {
         "message": "Volleyball Tracker API",
-        "version": "1.0.0",
+        "version": "0.1.0",
         "docs": "/docs" 
     }
 

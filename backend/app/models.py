@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, UniqueConstraint
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Enum as SAEnum
@@ -24,10 +24,15 @@ class Player(Base):
 class PlayerStats(Base):
     __tablename__ = "player_stats"
 
+    __table_args__ = (
+       UniqueConstraint('player_id', 'match_type', 'season', name='unique_player_stats'),
+   )
+
     id = Column(Integer, primary_key=True)
 
     player_id = Column(ForeignKey("players.id"))
     match_type = Column(SAEnum(MatchType)) 
+    season = Column(Integer, default=datetime.utcnow().year)
 
     wins = Column(Integer, default=0)
     losses = Column(Integer, default=0)

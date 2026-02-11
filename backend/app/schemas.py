@@ -1,24 +1,27 @@
-from threading import main_thread
 from pydantic import UUID4, BaseModel, computed_field
-from typing import Optional, List, Literal
+from typing import Optional, List
 from datetime import datetime
-import enum
+from enum import Enum
 import random
 
 
-class MatchType(str, enum.Enum):
+class MatchType(str, Enum):
     indoor = "indoor"
     beach = "beach"
 
-class TeamColor(str, enum.Enum):
+class TeamColor(str, Enum):
     blue = "blue"
     red = "red"
 
-class PlayerCreate(BaseModel):
+class PlayerBase(BaseModel):
     name: str
+
+class PlayerCreate(PlayerBase):
+    pass
 
 class PlayerStatsResponse(BaseModel):
     match_type: MatchType
+    season: int
     wins: int
     losses: int
     otl: int
@@ -58,19 +61,16 @@ class PlayerResponse(BaseModel):
 class PlayerUpdate(BaseModel):
     name: Optional[str]
 
-class PlayerMatchResponse(BaseModel):
-    id: int
-    name: str
+class TeamCreate(BaseModel):
+    roster: List[str]
 
-    class Config:
-        from_attributes = True
+class TeamResponse(BaseModel):
+    blue_team: List[str]
+    red_team: List[str]
 
-class MatchTeamResponse(BaseModel):
-    color: TeamColor
-    players: list[PlayerMatchResponse]
-
-    class Config:
-        from_attributes = True
+class MatchCreate(BaseModel):
+    id: UUID4
+    match_type: MatchType
 
 class MatchResponse(BaseModel):
     id: UUID4
@@ -80,7 +80,7 @@ class MatchResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    teams: list[MatchTeamResponse]
+    teams: TeamResponse
 
     @computed_field
     @property
@@ -96,7 +96,11 @@ class MatchResponse(BaseModel):
     @computed_field
     @property
     def is_overtime(self) -> bool:
-        return self.blue_score >= 24 and self.red_score >= 24
+        if self.match_type == MatchType.indoor:
+            ot_score = 24
+        else:
+            ot_score = 21
+        return self.blue_score >= ot_score and self.red_score >= ot_score
 
     class Config:
         from_attributes = True
