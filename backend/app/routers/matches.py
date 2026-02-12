@@ -1,41 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 from datetime import datetime
 import random
 
 from app.database import get_db
-from app.models import Player, PlayerStats, Match, MatchPlayer
-from app.schemas import MatchType, MatchCreate, MatchResponse, MatchResultRequest, TeamColor, PlayerBase
+from app.models import Player, PlayerStats, Match, BluePlayer, RedPlayer
+from app.schemas import MatchType, MatchCreate, MatchResponse, MatchResultRequest 
 
 
 router = APIRouter(prefix="/matches", tags=["matches"])
-
-
-
-def build_match_response(match: Match) -> MatchResponse:
-    """Helper to build MatchResponse from Match model"""
-    blue_team_players = [
-        PlayerBase(id=mp.player.id, name=mp.player.name) 
-        for mp in match.players if mp.color == TeamColor.blue
-    ]
-    red_team_players = [
-        PlayerBase(id=mp.player.id, name=mp.player.name) 
-        for mp in match.players if mp.color == TeamColor.red
-    ]
-    
-    return MatchResponse(
-        id=match.id,
-        match_type=match.match_type,
-        season=match.season,
-        blue_team=blue_team_players,
-        red_team=red_team_players,
-        blue_score=match.blue_score,
-        red_score=match.red_score,
-        created_at=match.created_at,
-        updated_at=match.updated_at
-    )
 
 
 @router.post("/draft", response_model=MatchResponse)
@@ -73,36 +48,30 @@ def create_match(request: MatchCreate, session: Session = Depends(get_db)):
     
     # Create match (as a draft)
     new_match = Match(
-        match_type=request.match_type,
-        season=datetime.utcnow().year,
-        blue_score=None,
-        red_score=None
+        match_type=request.match_type
     )
-    session.add(new_match)
-    session.flush()  # Get the match ID
-    
-    # Add blue team players
+
+    # Create teams
     for player_name in request.blue_team:
-        match_player = MatchPlayer(
+        match_player = BluePlayer(
             match_id=new_match.id,
             player_id=player_lookup[player_name].id,
-            color=TeamColor.blue
         )
-        session.add(match_player)
+        new_match.blue_team.append(match_player)
     
     # Add red team players
     for player_name in request.red_team:
-        match_player = MatchPlayer(
+        match_player = RedPlayer(
             match_id=new_match.id,
             player_id=player_lookup[player_name].id,
-            color=TeamColor.red
         )
-        session.add(match_player)
+        new_match.red_team.append(match_player)
     
+    session.add(new_match)
     session.commit()
     session.refresh(new_match)
     
-    return build_match_response(new_match)
+    return new_match
 
 
 @router.put("/{match_id}/results", response_model=MatchResponse)
@@ -126,13 +95,9 @@ def submit_match_results(match_id: UUID, results: MatchResultRequest, session: S
     match.blue_score = results.blue_score
     match.red_score = results.red_score
     
-    # Determine winner
-    winner = TeamColor.blue if results.blue_score > results.red_score else TeamColor.red
-    
-    # Calculate if overtime
-    ot_threshold = 24 if match.match_type == MatchType.indoor else 21
-    is_overtime = results.blue_score >= ot_threshold and results.red_score >= ot_threshold
-    
+    session.commit()
+    session.refresh(nmatch)
+
     # Update stats for all players in the match
     for match_player in match.players:
         player_won = (match_player.color == winner)
@@ -186,7 +151,7 @@ def get_match(match_id: UUID, session: Session = Depends(get_db)):
             detail="Match not found"
         )
     
-    return build_match_response(match)
+    return match
 
 
 @router.get("/", response_model=List[MatchResponse])

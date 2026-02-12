@@ -10,11 +10,6 @@ class MatchType(str, Enum):
     beach = "beach"
 
 
-class TeamColor(str, Enum):
-    blue = "blue"
-    red = "red"
-
-
 class PlayerBase(BaseModel):
     id: int
     name: str
@@ -78,7 +73,7 @@ class MatchCreate(BaseModel):
     red_team: List[str]
 
 
-class MatchResultRequest:
+class MatchResultRequest(BaseModel):
     blue_score: int
     red_score: int
 
