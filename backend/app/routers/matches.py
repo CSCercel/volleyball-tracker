@@ -38,11 +38,8 @@ def build_match_response(match: Match) -> MatchResponse:
     )
 
 
-@router.post("/draft")
-def create_match(
-    request: MatchCreate,
-    session: Session = Depends(get_db)
-) -> MatchResponse:
+@router.post("/draft", response_model=MatchResponse)
+def create_match(request: MatchCreate, session: Session = Depends(get_db)):
     # Validate teams have players
     if not request.blue_team or not request.red_team:
         raise HTTPException(
@@ -108,12 +105,8 @@ def create_match(
     return build_match_response(new_match)
 
 
-@router.put("/{match_id}/results")
-def submit_match_results(
-    match_id: UUID,
-    results: MatchResultRequest,
-    session: Session = Depends(get_db)
-) -> MatchResponse:
+@router.put("/{match_id}/results", response_model=MatchResponse)
+def submit_match_results(match_id: UUID, results: MatchResultRequest, session: Session = Depends(get_db)):
     # Get the match
     match = session.query(Match).filter(Match.id == match_id).first()
     if not match:

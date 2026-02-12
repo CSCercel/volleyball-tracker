@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.models import Base, Player
+from app.models import Base
 from app.database import engine, Base
 from app.routers import players, matches
 

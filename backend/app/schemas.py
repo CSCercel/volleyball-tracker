@@ -3,7 +3,6 @@ from pydantic import UUID4, BaseModel, computed_field
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
-import random
 
 
 class MatchType(str, Enum):

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, UniqueConstraint
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Enum as SAEnum

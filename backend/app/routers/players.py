@@ -11,8 +11,8 @@ from app.schemas import MatchType, PlayerCreate, PlayerResponse
 router = APIRouter(prefix="/players", tags=["players"])
 
 
-@router.post("/create")
-def create_player(player: PlayerCreate, session: Session = Depends(get_db)) -> PlayerResponse:
+@router.post("/create", response_model=PlayerResponse)
+def create_player(player: PlayerCreate, session: Session = Depends(get_db)):
     response = session.query(Player).filter(Player.name == player.name)
     existing_player = response.first()
     if existing_player:
@@ -44,14 +44,14 @@ def create_player(player: PlayerCreate, session: Session = Depends(get_db)) -> P
 
     return new_player
 
-@router.get("/roster")
-def list_players( session: Session = Depends(get_db)) -> List[PlayerResponse]:
+@router.get("/", response_model=List[PlayerResponse])
+def list_players( session: Session = Depends(get_db)):
     response = session.query(Player).order_by(Player.name).all()
 
     return response
 
-@router.get("/roster/{name}")
-def get_player( name: str, session: Session = Depends(get_db)) -> PlayerResponse:
+@router.get("/{name}", response_model=PlayerResponse)
+def get_player( name: str, session: Session = Depends(get_db)):
     response = session.query(Player).where(Player.name == name).first()
     if not response:
         raise HTTPException(
@@ -60,7 +60,7 @@ def get_player( name: str, session: Session = Depends(get_db)) -> PlayerResponse
         ) 
     return response
 
-@router.delete("/roster/{player_id}")
+@router.delete("/{player_id}")
 def delete_player( name: str, session: Session = Depends(get_db)):
     response = session.query(Player).where(Player.name == name)
 
