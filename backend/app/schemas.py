@@ -1,3 +1,4 @@
+from uuid import UUID
 from pydantic import UUID4, BaseModel, computed_field
 from typing import Optional, List
 from datetime import datetime
@@ -9,15 +10,23 @@ class MatchType(str, Enum):
     indoor = "indoor"
     beach = "beach"
 
+
 class TeamColor(str, Enum):
     blue = "blue"
     red = "red"
 
+
 class PlayerBase(BaseModel):
+    id: int
     name: str
 
-class PlayerCreate(PlayerBase):
-    pass
+    class Config:
+        from_attributes = True
+
+
+class PlayerCreate(BaseModel):
+    name: str
+
 
 class PlayerStatsResponse(BaseModel):
     match_type: MatchType
@@ -48,6 +57,7 @@ class PlayerStatsResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class PlayerResponse(BaseModel):
     id: int
     name: str
@@ -58,49 +68,58 @@ class PlayerResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class PlayerUpdate(BaseModel):
     name: Optional[str]
 
-class TeamCreate(BaseModel):
-    roster: List[str]
 
-class TeamResponse(BaseModel):
+class MatchCreate(BaseModel):
+    match_type: MatchType
     blue_team: List[str]
     red_team: List[str]
 
-class MatchCreate(BaseModel):
-    id: UUID4
-    match_type: MatchType
+
+class MatchResultRequest:
+    blue_score: int
+    red_score: int
+
 
 class MatchResponse(BaseModel):
     id: UUID4
     match_type: MatchType
-    blue_score: int
-    red_score: int
+    season: int
+    blue_team: List[PlayerBase]
+    red_team: List[PlayerBase]
+    blue_score: Optional[int]
+    red_score: Optional[int]
     created_at: datetime
     updated_at: datetime
 
-    teams: TeamResponse
-
     @computed_field
     @property
-    def winner(self) -> str:
-        if self.blue_score + self.red_score == 0:
+    def status(self) -> str:
+        if self.blue_score is None or self.red_score is None:
             return "draft"
-
+        return "completed"
+    
+    @computed_field
+    @property
+    def winner(self) -> Optional[str]:
+        if self.blue_score is None or self.red_score is None:
+            return None
         elif self.blue_score > self.red_score:
-            return TeamColor.blue
+            return TeamColor.blue.value
         else:
-            return TeamColor.red
-
+            return TeamColor.red.value
+    
     @computed_field
     @property
     def is_overtime(self) -> bool:
-        if self.match_type == MatchType.indoor:
-            ot_score = 24
-        else:
-            ot_score = 21
-        return self.blue_score >= ot_score and self.red_score >= ot_score
-
+        if self.blue_score is None or self.red_score is None:
+            return False
+        
+        ot_threshold = 24 if self.match_type == MatchType.indoor else 21
+        return self.blue_score >= ot_threshold and self.red_score >= ot_threshold
+    
     class Config:
         from_attributes = True

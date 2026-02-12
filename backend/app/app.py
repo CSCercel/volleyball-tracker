@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.models import Base, Player
 from app.database import engine, Base
-from app.routers import players
+from app.routers import players, matches
 
 
 # Create database tables
@@ -41,4 +41,4 @@ def health_check():
 
 # Include routers
 app.include_router(players.router)
-# app.include_router(matches.router)
+app.include_router(matches.router)

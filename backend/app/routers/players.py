@@ -8,10 +8,7 @@ from app.models import Player, PlayerStats
 from app.schemas import MatchType, PlayerCreate, PlayerResponse
 
 
-router = APIRouter(
-    prefix="/players",  
-    tags=["players"]
-)
+router = APIRouter(prefix="/players", tags=["players"])
 
 
 @router.post("/create")
