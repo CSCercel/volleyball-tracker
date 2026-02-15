@@ -111,7 +111,15 @@ def create_match(
 
 
 @router.put("/{match_id}/results", response_model=MatchResponse)
-def submit_match_results(match_id: UUID, results: MatchResultRequest, session: Session = Depends(get_db)):
+def submit_match_results(
+    match_id: UUID,
+    results: MatchResultRequest,
+    session: Session = Depends(get_db)
+):
+    """
+    Submit match results and automatically update player stats.
+    """
+    
     # Get the match
     match = session.query(Match).filter(Match.id == match_id).first()
     if not match:
@@ -131,12 +139,21 @@ def submit_match_results(match_id: UUID, results: MatchResultRequest, session: S
     match.blue_score = results.blue_score
     match.red_score = results.red_score
     
-    session.commit()
-    session.refresh(match)
-
+    # Determine winner (calculate here, not from match.winner)
+    winner = TeamColor.blue if results.blue_score > results.red_score else TeamColor.red
+    
+    # Calculate if overtime
+    ot_threshold = 24 if match.match_type == MatchType.indoor else 21
+    is_overtime = results.blue_score >= ot_threshold and results.red_score >= ot_threshold
+    
+    # Get all match players
+    match_players = session.query(MatchPlayer).filter(
+        MatchPlayer.match_id == match_id
+    ).all()
+    
     # Update stats for all players in the match
-    for match_player in match.players:
-        player_won = (match_player.color == match.winner)
+    for match_player in match_players:
+        player_won = (match_player.color == winner) 
         
         update_player_stats(
             session=session,
