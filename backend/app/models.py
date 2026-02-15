@@ -1,13 +1,13 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, UniqueConstraint
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import Enum as SAEnum
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
 from sqlalchemy.types import MatchType
 from app.database import Base
-from app.schemas import MatchType
+from app.schemas import MatchType, TeamColor
 
 
 class Player(Base):
@@ -32,7 +32,7 @@ class PlayerStats(Base):
     id = Column(Integer, primary_key=True)
 
     player_id = Column(ForeignKey("players.id"))
-    match_type = Column(SAEnum(MatchType)) 
+    match_type = Column(SQLEnum(MatchType)) 
     season = Column(Integer, default=datetime.utcnow().year)
 
     wins = Column(Integer, default=0)
@@ -46,32 +46,23 @@ class Match(Base):
     __tablename__ = "matches"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    match_type = Column(SAEnum(MatchType))
+    match_type = Column(SQLEnum(MatchType))
     season = Column(Integer, default=datetime.utcnow().year)
     blue_score = Column(Integer, nullable=True, default=None)
     red_score = Column(Integer, nullable=True, default=None)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    blue_team = relationship("BluePlayer", back_populates="match", cascade="all, delete-orphan")
-    red_team = relationship("RedPlayer", back_populates="match", cascade="all, delete-orphan")
+    players = relationship("MatchPlayer", back_populates="match", cascade="all, delete-orphan")
 
 
-class BluePlayer(Base):
-    __tablename__ = "blue_players"
-    
+class MatchPlayer(Base):
+    __tablename__ = "match_players"
+
     id = Column(Integer, primary_key=True)
     match_id = Column(ForeignKey("matches.id"))
     player_id = Column(ForeignKey("players.id"))
-    match = relationship("Match", back_populates="blue_team")
-    player = relationship("Player")
+    color = Column(SQLEnum(TeamColor))
 
-
-class RedPlayer(Base):
-    __tablename__ = "red_players"
-    
-    id = Column(Integer, primary_key=True)
-    match_id = Column(ForeignKey("matches.id"))
-    player_id = Column(ForeignKey("players.id"))
-    match = relationship("Match", back_populates="red_team")
+    match = relationship("Match", back_populates="players")
     player = relationship("Player")

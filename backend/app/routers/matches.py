@@ -3,18 +3,49 @@ from sqlalchemy.orm import Session
 from typing import List
 from uuid import UUID
 from datetime import datetime
-import random
 
 from app.database import get_db
-from app.models import Player, PlayerStats, Match, BluePlayer, RedPlayer
-from app.schemas import MatchType, MatchCreate, MatchResponse, MatchResultRequest 
+from app.models import Player, PlayerStats, Match, MatchPlayer
+from app.schemas import MatchCreate, MatchResponse, MatchResultRequest, PlayerBase, MatchType, TeamColor
 
 
 router = APIRouter(prefix="/matches", tags=["matches"])
 
 
-@router.post("/draft", response_model=MatchResponse)
-def create_match(request: MatchCreate, session: Session = Depends(get_db)):
+def build_match_response(match: Match) -> MatchResponse:
+    """Helper to build MatchResponse from Match model"""
+    blue_team_players = [
+        PlayerBase(id=mp.player.id, name=mp.player.name) 
+        for mp in match.players if mp.color == TeamColor.blue
+    ]
+    red_team_players = [
+        PlayerBase(id=mp.player.id, name=mp.player.name) 
+        for mp in match.players if mp.color == TeamColor.red
+    ]
+    
+    return MatchResponse(
+        id=match.id,
+        match_type=match.match_type,
+        season=match.season,
+        blue_team=blue_team_players,
+        red_team=red_team_players,
+        blue_score=match.blue_score,
+        red_score=match.red_score,
+        created_at=match.created_at,
+        updated_at=match.updated_at
+    )
+
+
+@router.post("/create", response_model=MatchResponse)
+def create_match(
+    request: MatchCreate,
+    session: Session = Depends(get_db)
+):
+    """
+    Create a new match with pre-assigned teams.
+    No scores yet - this creates a draft match.
+    """
+    
     # Validate teams have players
     if not request.blue_team or not request.red_team:
         raise HTTPException(
@@ -46,32 +77,37 @@ def create_match(request: MatchCreate, session: Session = Depends(get_db)):
     # Create player lookup
     player_lookup = {p.name: p for p in players}
     
-    # Create match (as a draft)
+    # Create match (no scores yet - this is a draft)
     new_match = Match(
-        match_type=request.match_type
+        match_type=request.match_type,
+        blue_score=None,
+        red_score=None
     )
-
-    # Create teams
+    session.add(new_match)
+    session.flush()  # Get the match ID
+    
+    # Add blue team players
     for player_name in request.blue_team:
-        match_player = BluePlayer(
+        match_player = MatchPlayer(
             match_id=new_match.id,
             player_id=player_lookup[player_name].id,
+            color=TeamColor.blue
         )
-        new_match.blue_team.append(match_player)
+        session.add(match_player)
     
     # Add red team players
     for player_name in request.red_team:
-        match_player = RedPlayer(
+        match_player = MatchPlayer(
             match_id=new_match.id,
             player_id=player_lookup[player_name].id,
+            color=TeamColor.red
         )
-        new_match.red_team.append(match_player)
+        session.add(match_player)
     
-    session.add(new_match)
     session.commit()
     session.refresh(new_match)
     
-    return new_match
+    return build_match_response(new_match)
 
 
 @router.put("/{match_id}/results", response_model=MatchResponse)
@@ -96,11 +132,11 @@ def submit_match_results(match_id: UUID, results: MatchResultRequest, session: S
     match.red_score = results.red_score
     
     session.commit()
-    session.refresh(nmatch)
+    session.refresh(match)
 
     # Update stats for all players in the match
     for match_player in match.players:
-        player_won = (match_player.color == winner)
+        player_won = (match_player.color == match.winner)
         
         update_player_stats(
             session=session,
@@ -136,9 +172,9 @@ def update_player_stats(
     if won:
         stats.wins += 1
     elif is_overtime:
-        stats.otl += 1  # Lost in overtime
+        stats.otl += 1
     else:
-        stats.losses += 1  # Regular loss
+        stats.losses += 1
 
 
 @router.get("/{match_id}", response_model=MatchResponse)
@@ -151,7 +187,7 @@ def get_match(match_id: UUID, session: Session = Depends(get_db)):
             detail="Match not found"
         )
     
-    return match
+    return build_match_response(match)
 
 
 @router.get("/", response_model=List[MatchResponse])
