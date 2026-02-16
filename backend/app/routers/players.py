@@ -32,7 +32,9 @@ def create_player(player: PlayerCreate, session: Session = Depends(get_db)):
             season=datetime.utcnow().year,
             wins=0,
             losses=0,
-            otl=0
+            otl=0,
+            streak=0,
+            longest_streak=0
         )
         new_player.stats.append(stats)
         

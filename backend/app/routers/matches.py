@@ -7,33 +7,10 @@ from datetime import datetime
 from app.database import get_db
 from app.models import Player, PlayerStats, Match, MatchPlayer
 from app.schemas import MatchCreate, MatchResponse, MatchResultRequest, PlayerBase, MatchType, TeamColor
+from app.utils import build_match_response, update_player_stats
 
 
 router = APIRouter(prefix="/matches", tags=["matches"])
-
-
-def build_match_response(match: Match) -> MatchResponse:
-    """Helper to build MatchResponse from Match model"""
-    blue_team_players = [
-        PlayerBase(id=mp.player.id, name=mp.player.name) 
-        for mp in match.players if mp.color == TeamColor.blue
-    ]
-    red_team_players = [
-        PlayerBase(id=mp.player.id, name=mp.player.name) 
-        for mp in match.players if mp.color == TeamColor.red
-    ]
-    
-    return MatchResponse(
-        id=match.id,
-        match_type=match.match_type,
-        season=match.season,
-        blue_team=blue_team_players,
-        red_team=red_team_players,
-        blue_score=match.blue_score,
-        red_score=match.red_score,
-        created_at=match.created_at,
-        updated_at=match.updated_at
-    )
 
 
 @router.post("/create", response_model=MatchResponse)
@@ -41,11 +18,6 @@ def create_match(
     request: MatchCreate,
     session: Session = Depends(get_db)
 ):
-    """
-    Create a new match with pre-assigned teams.
-    No scores yet - this creates a draft match.
-    """
-    
     # Validate teams have players
     if not request.blue_team or not request.red_team:
         raise HTTPException(
@@ -116,10 +88,6 @@ def submit_match_results(
     results: MatchResultRequest,
     session: Session = Depends(get_db)
 ):
-    """
-    Submit match results and automatically update player stats.
-    """
-    
     # Get the match
     match = session.query(Match).filter(Match.id == match_id).first()
     if not match:
@@ -168,30 +136,6 @@ def submit_match_results(
     session.refresh(match)
     
     return build_match_response(match)
-
-
-def update_player_stats(
-    session: Session,
-    player_id: int,
-    match_type: MatchType,
-    season: int,
-    won: bool,
-    is_overtime: bool
-):
-    # Try to get existing stats
-    stats = session.query(PlayerStats).filter(
-        PlayerStats.player_id == player_id,
-        PlayerStats.match_type == match_type,
-        PlayerStats.season == season
-    ).first()
-    
-    # Update stats based on result
-    if won:
-        stats.wins += 1
-    elif is_overtime:
-        stats.otl += 1
-    else:
-        stats.losses += 1
 
 
 @router.get("/{match_id}", response_model=MatchResponse)

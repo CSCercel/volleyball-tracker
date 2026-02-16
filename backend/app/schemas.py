@@ -33,6 +33,8 @@ class PlayerStatsResponse(BaseModel):
     wins: int
     losses: int
     otl: int
+    streak: int
+    longest_streak: int
 
     @computed_field
     @property
