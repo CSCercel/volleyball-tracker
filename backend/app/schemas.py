@@ -18,6 +18,7 @@ class TeamColor(str, Enum):
 class PlayerBase(BaseModel):
     id: int
     name: str
+    points: int
 
     class Config:
         from_attributes = True
@@ -121,6 +122,49 @@ class MatchResponse(BaseModel):
         
         ot_threshold = 24 if self.match_type == MatchType.indoor else 21
         return self.blue_score >= ot_threshold and self.red_score >= ot_threshold
+   
+    @computed_field
+    @property
+    def blue_mvp(self) -> str:
+        best_player = self.blue_team[0].name
+        best_player_points = self.blue_team[0].points
+        for p in self.blue_team:
+            if p.points > best_player_points:
+                best_player = p.name
+                best_player_points = p.points
+
+        return best_player
+
+    @computed_field
+    @property
+    def red_mvp(self) -> str:
+        best_player = self.red_team[0].name
+        best_player_points = self.red_team[0].points
+        for p in self.red_team:
+            if p.points > best_player_points:
+                best_player = p.name
+                best_player_points = p.points
+
+        return best_player
     
+    @computed_field
+    @property
+    def blue_odds(self) -> float:
+        blue_points, red_points = 0, 0
+        for p in self.blue_team:
+            blue_points += p.points
+        for p in self.red_team:
+            red_points += p.points
+        
+        if blue_points + red_points == 0:
+            return 0.5
+        else:
+            return blue_points / (blue_points + red_points)
+
+    @computed_field
+    @property
+    def red_odds(self) -> float:
+        return 1 - self.blue_odds
+
     class Config:
         from_attributes = True

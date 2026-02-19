@@ -79,7 +79,7 @@ def create_match(
     session.commit()
     session.refresh(new_match)
     
-    return build_match_response(new_match)
+    return build_match_response(new_match, session)
 
 
 @router.put("/{match_id}/results", response_model=MatchResponse)
@@ -135,7 +135,7 @@ def submit_match_results(
     session.commit()
     session.refresh(match)
     
-    return build_match_response(match)
+    return build_match_response(match, session)
 
 
 @router.get("/{match_id}", response_model=MatchResponse)
@@ -148,7 +148,7 @@ def get_match(match_id: UUID, session: Session = Depends(get_db)):
             detail="Match not found"
         )
     
-    return build_match_response(match)
+    return build_match_response(match, session)
 
 
 @router.get("/", response_model=List[MatchResponse])
@@ -165,4 +165,4 @@ def list_matches(
     
     matches = query.order_by(Match.created_at.desc()).all()
     
-    return [build_match_response(match) for match in matches]
+    return [build_match_response(match, session) for match in matches]
