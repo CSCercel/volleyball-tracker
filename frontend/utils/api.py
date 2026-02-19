@@ -6,6 +6,12 @@ from typing import List, Dict
 API_BASE = st.secrets["API_BASE_URL"]
 
 
+def get_player(name: str) -> Dict:
+    response = requests.get(f"{API_BASE}/players/{name}")
+    response.raise_for_status()
+    return response.json()
+
+
 def get_players() -> List[Dict]:
     response = requests.get(f"{API_BASE}/players")
     response.raise_for_status()
