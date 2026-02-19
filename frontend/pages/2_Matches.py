@@ -1,0 +1,129 @@
+import streamlit as st
+from utils import api
+
+st.set_page_config(page_title="Matches", page_icon="🏐", layout="wide")
+
+st.title("🏐 Matches")
+
+# Tabs for different views
+tab1, tab2, tab3 = st.tabs(["Create Match", "Draft Matches", "Completed Matches"])
+
+# TAB 1: Create new match
+with tab1:
+    st.subheader("Create New Match")
+    
+    try:
+        players = api.get_players()
+        player_names = [p['name'] for p in players]
+        
+        if len(player_names) < 2:
+            st.warning("⚠️ Need at least 2 players to create a match. Add players first!")
+        else:
+            match_type = st.selectbox("Match Type", ["indoor", "beach"])
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("**🔵 Blue Team**")
+                blue_team = st.multiselect("Select Blue Team", player_names, key="blue")
+            
+            with col2:
+                st.markdown("**🔴 Red Team**")
+                # Filter out players already on blue team
+                available_for_red = [p for p in player_names if p not in blue_team]
+                red_team = st.multiselect("Select Red Team", available_for_red, key="red")
+            
+            if st.button("Create Match", type="primary"):
+                if not blue_team or not red_team:
+                    st.error("Both teams need at least one player!")
+                else:
+                    try:
+                        match = api.create_match({
+                            "match_type": match_type,
+                            "blue_team": blue_team,
+                            "red_team": red_team
+                        })
+                        st.success("✅ Match created!")
+                        st.json(match)
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+    
+    except Exception as e:
+        st.error(f"Failed to load players: {e}")
+
+# TAB 2: Draft matches
+with tab2:
+    st.subheader("Draft Matches (Not Played Yet)")
+    
+    try:
+        drafts = api.get_matches(status="draft")
+        
+        if not drafts:
+            st.info("No draft matches. Create one in the 'Create Match' tab!")
+        else:
+            for match in drafts:
+                with st.expander(f"Match {match['id'][:8]} - {match['match_type'].upper()}"):
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("**🔵 Blue Team**")
+                        for player in match['blue_team']:
+                            st.text(f"- {player['name']} ({player.get('points', 0)} pts)")
+                    
+                    with col2:
+                        st.markdown("**🔴 Red Team**")
+                        for player in match['red_team']:
+                            st.text(f"- {player['name']} ({player.get('points', 0)} pts)")
+                    
+                    st.markdown("---")
+                    st.markdown("**Submit Results**")
+                    
+                    col_a, col_b, col_c = st.columns(3)
+                    with col_a:
+                        blue_score = st.number_input("Blue Score", min_value=0, key=f"blue_{match['id']}")
+                    with col_b:
+                        red_score = st.number_input("Red Score", min_value=0, key=f"red_{match['id']}")
+                    with col_c:
+                        if st.button("Submit Results", key=f"submit_{match['id']}"):
+                            try:
+                                result = api.submit_match_results(match['id'], blue_score, red_score)
+                                st.success("✅ Results submitted!")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Error: {e}")
+    
+    except Exception as e:
+        st.error(f"Failed to load draft matches: {e}")
+
+# TAB 3: Completed matches
+with tab3:
+    st.subheader("Completed Matches")
+    
+    try:
+        completed = api.get_matches(status="completed")
+        
+        if not completed:
+            st.info("No completed matches yet.")
+        else:
+            for match in completed:
+                winner_emoji = "🔵" if match['winner'] == "blue" else "🔴"
+                ot_badge = "⏱️ OT" if match['is_overtime'] else ""
+                
+                with st.expander(f"{winner_emoji} {match['blue_score']}-{match['red_score']} {ot_badge} - {match['match_type'].upper()}"):
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown(f"**🔵 Blue Team - {match['blue_score']}**")
+                        for player in match['blue_team']:
+                            st.text(f"- {player['name']}")
+                    
+                    with col2:
+                        st.markdown(f"**🔴 Red Team - {match['red_score']}**")
+                        for player in match['red_team']:
+                            st.text(f"- {player['name']}")
+                    
+                    st.caption(f"Played: {match['created_at']}")
+    
+    except Exception as e:
+        st.error(f"Failed to load completed matches: {e}")
