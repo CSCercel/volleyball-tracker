@@ -25,6 +25,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Auth routes
+app.include_router(
+    fastapi_users.get_auth_router(auth_backend),
+    prefix="/auth/jwt",
+    tags=["auth"],
+)
+
+
+# Include routers
+app.include_router(players.router)
+app.include_router(matches.router)
+
+
 @app.get("/")
 def root():
     return {
@@ -36,21 +50,3 @@ def root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
-
-# Auth routes
-app.include_router(
-    fastapi_users.get_auth_router(auth_backend),
-    prefix="/auth/jwt",
-    tags=["auth"],
-)
-
-app.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
-    tags=["auth"],
-)
-
-
-# Include routers
-app.include_router(players.router)
-app.include_router(matches.router)

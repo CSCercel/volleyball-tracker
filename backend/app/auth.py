@@ -1,7 +1,8 @@
 import os
+import uuid
 from typing import Optional
 from fastapi import Depends, Request
-from fastapi_users import BaseUserManager, FastAPIUsers, IntegerIDMixin
+from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin
 from fastapi_users.authentication import (
     AuthenticationBackend,
     BearerTransport,
@@ -16,7 +17,7 @@ from app.database import get_db
 SECRET = os.getenv("SECRET_KEY", "local-key")
 
 # User Manager
-class UserManager(IntegerIDMixin, BaseUserManager[User, int]):
+class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     reset_password_token_secret = SECRET
     verification_token_secret = SECRET
 
@@ -45,7 +46,7 @@ auth_backend = AuthenticationBackend(
 )
 
 # FastAPIUsers instance
-fastapi_users = FastAPIUsers[User, int](
+fastapi_users = FastAPIUsers[User, uuid.UUID](
     get_user_manager,
     [auth_backend],
 )

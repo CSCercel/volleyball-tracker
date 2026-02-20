@@ -14,7 +14,7 @@ from app.database import Base
 from app.schemas import MatchType, TeamColor
 
 
-class User(SQLAlchemyBaseUserTable[UUID], Base):
+class User(SQLAlchemyBaseUserTable[uuid.UUID], Base):
     __tablename__ = "users"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
