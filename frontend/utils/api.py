@@ -6,6 +6,19 @@ from typing import List, Dict
 API_BASE = st.secrets["API_BASE_URL"]
 
 
+def login(email: str, password: str):
+    response = requests.post(
+        f"{API_BASE}/auth/jwt/login",
+        data={
+            "username": email, 
+            "password": password
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+    response.raise_for_status()
+    return response.json()
+
+
 def get_player(name: str) -> Dict:
     response = requests.get(f"{API_BASE}/players/{name}")
     response.raise_for_status()
@@ -61,3 +74,9 @@ def submit_match_results(match_id: str, blue_score: int, red_score: int) -> Dict
     )
     response.raise_for_status()
     return response.json()
+
+def delete_match(match_id: int):
+    response = requests.delete(f"{API_BASE}/matches/{match_id}")
+    response.raise_for_status()
+    return response.json()
+

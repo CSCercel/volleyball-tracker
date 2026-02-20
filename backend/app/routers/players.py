@@ -4,7 +4,8 @@ from typing import List
 from datetime import datetime
 
 from app.database import get_db
-from app.models import Player, PlayerStats
+from app.auth import current_active_user
+from app.models import Player, PlayerStats, User
 from app.schemas import MatchType, PlayerCreate, PlayerResponse
 
 
@@ -12,7 +13,11 @@ router = APIRouter(prefix="/players", tags=["players"])
 
 
 @router.post("/create", response_model=PlayerResponse)
-def create_player(player: PlayerCreate, session: Session = Depends(get_db)):
+def create_player(
+    player: PlayerCreate,
+    user: User = Depends(current_active_user),
+    session: Session = Depends(get_db)
+):
     response = session.query(Player).filter(Player.name == player.name)
     existing_player = response.first()
     if existing_player:
@@ -46,14 +51,16 @@ def create_player(player: PlayerCreate, session: Session = Depends(get_db)):
 
     return new_player
 
+
 @router.get("/", response_model=List[PlayerResponse])
-def list_players( session: Session = Depends(get_db)):
+def list_players(session: Session = Depends(get_db)):
     response = session.query(Player).order_by(Player.name).all()
 
     return response
 
+
 @router.get("/{name}", response_model=PlayerResponse)
-def get_player( name: str, session: Session = Depends(get_db)):
+def get_player(name: str, session: Session = Depends(get_db)):
     response = session.query(Player).where(Player.name == name).first()
     if not response:
         raise HTTPException(
@@ -62,8 +69,13 @@ def get_player( name: str, session: Session = Depends(get_db)):
         ) 
     return response
 
+
 @router.delete("/{player_id}")
-def delete_player( name: str, session: Session = Depends(get_db)):
+def delete_player(
+    name: str,
+    user: User = Depends(current_active_user), 
+    session: Session = Depends(get_db)
+):
     response = session.query(Player).where(Player.name == name)
 
     player = response.first()

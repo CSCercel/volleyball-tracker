@@ -1,9 +1,23 @@
 from uuid import UUID
-from pydantic import UUID4, BaseModel, computed_field
+import uuid
+from pydantic import UUID4, BaseModel, computed_field, EmailStr
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
+from fastapi_users import schemas
 
+
+class UserRead(schemas.BaseUser[uuid.UUID]):
+    pass
+
+
+class UserCreate(schemas.BaseUserCreate):
+    email: EmailStr
+    password: str
+
+
+class UserUpdate(schemas.BaseUserUpdate):
+    pass
 
 class MatchType(str, Enum):
     indoor = "indoor"

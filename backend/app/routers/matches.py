@@ -5,7 +5,8 @@ from uuid import UUID
 from datetime import datetime
 
 from app.database import get_db
-from app.models import Player, PlayerStats, Match, MatchPlayer
+from app.auth import current_active_user
+from app.models import Player, PlayerStats, Match, MatchPlayer, User
 from app.schemas import MatchCreate, MatchResponse, MatchResultRequest, PlayerBase, MatchType, TeamColor
 from app.utils import build_match_response, update_player_stats
 
@@ -16,6 +17,7 @@ router = APIRouter(prefix="/matches", tags=["matches"])
 @router.post("/create", response_model=MatchResponse)
 def create_match(
     request: MatchCreate,
+    user: User = Depends(current_active_user),
     session: Session = Depends(get_db)
 ):
     # Validate teams have players
@@ -86,6 +88,7 @@ def create_match(
 def submit_match_results(
     match_id: UUID,
     results: MatchResultRequest,
+    user: User = Depends(current_active_user),
     session: Session = Depends(get_db)
 ):
     # Get the match
@@ -169,7 +172,11 @@ def list_matches(
 
 
 @router.delete("/{match_id}")
-def delete_match(match_id: UUID, session: Session = Depends(get_db)):
+def delete_match(
+    match_id: UUID,
+    user: User = Depends(current_active_user),
+    session: Session = Depends(get_db)
+):
     response = session.query(Match).where(Match.id == match_id)
 
     match = response.first()
