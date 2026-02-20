@@ -120,7 +120,7 @@ class MatchResponse(BaseModel):
         if self.blue_score is None or self.red_score is None:
             return False
         
-        ot_threshold = 24 if self.match_type == MatchType.indoor else 21
+        ot_threshold = 24 if self.match_type == MatchType.indoor else 20
         return self.blue_score >= ot_threshold and self.red_score >= ot_threshold
    
     @computed_field

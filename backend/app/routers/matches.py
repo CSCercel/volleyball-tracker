@@ -111,7 +111,7 @@ def submit_match_results(
     winner = TeamColor.blue if results.blue_score > results.red_score else TeamColor.red
     
     # Calculate if overtime
-    ot_threshold = 24 if match.match_type == MatchType.indoor else 21
+    ot_threshold = 24 if match.match_type == MatchType.indoor else 20
     is_overtime = results.blue_score >= ot_threshold and results.red_score >= ot_threshold
     
     # Get all match players
