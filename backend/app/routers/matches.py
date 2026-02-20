@@ -166,3 +166,24 @@ def list_matches(
     matches = query.order_by(Match.created_at.desc()).all()
     
     return [build_match_response(match, session) for match in matches]
+
+
+@router.delete("/{match_id}")
+def delete_match(match_id: UUID, session: Session = Depends(get_db)):
+    response = session.query(Match).where(Match.id == match_id)
+
+    match = response.first()
+    if not match:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Player not found"
+        )
+
+    if match.blue_score != None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Match has already been registered."
+        )
+
+    session.delete(match)
+    session.commit()
