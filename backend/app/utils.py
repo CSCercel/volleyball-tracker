@@ -57,6 +57,19 @@ def update_player_stats(
         PlayerStats.season == season
     ).first()
     
+    if not stats:
+        stats = PlayerStats(
+            player_id=player_id,
+            match_type=match_type,
+            season=season,
+            wins=0,
+            losses=0,
+            otl=0,
+            streak=0,
+            longest_streak=0
+        )
+        session.add(stats)
+
     # Update stats based on result
     if won:
         stats.wins += 1
