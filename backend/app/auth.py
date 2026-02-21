@@ -1,6 +1,6 @@
 import os
 import uuid
-from typing import Optional
+from typing import Optional, Generator
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin
 from fastapi_users.authentication import (
@@ -29,7 +29,9 @@ def get_user_db(session: Session = Depends(get_db)):
     yield SQLAlchemyUserDatabase(session, User)
 
 
-async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db)):
+def get_user_manager(
+        user_db: SQLAlchemyUserDatabase = Depends(get_user_db)
+) -> Generator[UserManager, None, None]:
     yield UserManager(user_db)
 
 
@@ -37,7 +39,7 @@ async def get_user_manager(user_db: SQLAlchemyUserDatabase = Depends(get_user_db
 bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
 
 def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=SECRET, lifetime_seconds=86400)  # 24 hours
+    return JWTStrategy(secret=SECRET, lifetime_seconds=3600)
 
 auth_backend = AuthenticationBackend(
     name="jwt",

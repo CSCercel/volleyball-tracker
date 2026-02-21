@@ -18,8 +18,12 @@ with tab1:
         player = api.get_player(option)
         
         # Get seasons played in
-        player_seasons = [s["season"] for s in player["stats"]]
-        season = st.selectbox("Season", set(player_seasons))
+        player_seasons = set([s["season"] for s in player["stats"]])
+        season = st.number_input("Season", 
+                                 min_value=min(player_seasons), 
+                                 max_value=max(player_seasons), 
+                                 value=max(player_seasons)
+                                 )
 
         # Get current stats
         try:
@@ -68,8 +72,12 @@ with tab1:
                     previous_winrate = previous_indoor_stats['winrate'] * 100 if previous_indoor_stats else None
                     delta_winrate = round(winrate - previous_winrate, 2) if previous_winrate else None
 
+                    longest_streak = indoor_stats['longest_streak']
+                    previous_streak = previous_indoor_stats['longest_streak'] if previous_indoor_stats else None
+                    delta_streak = longest_streak - previous_streak if previous_streak else None
+
                     st.metric("Win Rate", f"{winrate}%", delta=delta_winrate)
-                    st.metric("Highest Win Streak \U0001F525", indoor_stats['longest_streak'])
+                    st.metric("Highest Win Streak", longest_streak, delta=delta_streak)
                 with col3:
                     points = indoor_stats['points']
                     previous_points = previous_indoor_stats['points'] if previous_indoor_stats else None
@@ -82,16 +90,34 @@ with tab1:
         with beach_col:
             st.subheader("Beach Statistics")
             if type(beach_stats) != str:
+                # Check if previous stats
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
-                    st.metric("Matches Played", beach_stats['wins'])
+                    played = beach_stats['played']
+                    previous_played = previous_beach_stats['played'] if previous_beach_stats else None
+                    delta_played = played - previous_played if previous_played else None
+
+                    st.metric("Matches Played", played, delta=delta_played)
                     st.metric("Current Win Streak", beach_stats['streak'])
+
                 with col2:
-                    st.metric("Win Rate", f"{round(beach_stats['winrate'] * 100, 2)}%")
-                    st.metric("Highest Win Streak \U0001F525", beach_stats['longest_streak'])
+                    winrate = round(beach_stats['winrate'], 2) * 100
+                    previous_winrate = previous_beach_stats['winrate'] * 100 if previous_beach_stats else None
+                    delta_winrate = round(winrate - previous_winrate, 2) if previous_winrate else None
+
+                    longest_streak = beach_stats['longest_streak']
+                    previous_streak = previous_beach_stats['longest_streak'] if previous_beach_stats else None
+                    delta_streak = longest_streak - previous_streak if previous_streak else None
+
+                    st.metric("Win Rate", f"{winrate}%", delta=delta_winrate)
+                    st.metric("Highest Win Streak", longest_streak, delta=delta_streak)
                 with col3:
-                    st.metric("Points", beach_stats['points'])
+                    points = beach_stats['points']
+                    previous_points = previous_beach_stats['points'] if previous_beach_stats else None
+                    delta_points = points - previous_points if previous_points else None
+
+                    st.metric("Points", points, delta=delta_points)
             else:
                 st.markdown(beach_stats)
 
