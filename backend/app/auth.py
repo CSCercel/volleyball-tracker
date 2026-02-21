@@ -8,7 +8,7 @@ from fastapi_users.authentication import (
     BearerTransport,
     JWTStrategy,
 )
-from fastapi_users.db import SQLAlchemyUserDatabase
+from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from sqlalchemy.orm import Session
 
 from app.models import User
@@ -25,7 +25,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
         print(f"User {user.id} has registered.")
 
 
-async def get_user_db(session: Session = Depends(get_db)):
+def get_user_db(session: Session = Depends(get_db)):
     yield SQLAlchemyUserDatabase(session, User)
 
 
