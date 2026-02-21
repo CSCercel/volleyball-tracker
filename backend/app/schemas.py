@@ -11,14 +11,6 @@ class UserRead(schemas.BaseUser[uuid.UUID]):
     pass
 
 
-class UserCreate(schemas.BaseUserCreate):
-    email: EmailStr
-    password: str
-
-
-class UserUpdate(schemas.BaseUserUpdate):
-    pass
-
 class MatchType(str, Enum):
     indoor = "indoor"
     beach = "beach"

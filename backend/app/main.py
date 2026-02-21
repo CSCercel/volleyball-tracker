@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.auth import auth_backend, fastapi_users
-from app.schemas import UserCreate, UserRead
 from app.models import Base
 from app.database import engine, Base
 from app.routers import players, matches
