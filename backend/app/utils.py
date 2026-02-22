@@ -10,12 +10,13 @@ def get_player_base(player: Player, match_type: MatchType, season: int) -> Playe
         None
     )
     
+    points = (stats.wins * 2 + stats.otl) if stats else 0
     total = stats.wins + stats.otl + stats.losses
 
     if total == 0:
         avg_points = 0
     else:
-        avg_points = stats.points / total
+        avg_points = points / total
 
     return PlayerBase(id=player.id, name=player.name, avg_points=avg_points)
 
@@ -51,8 +52,7 @@ async def update_player_stats(
     match_type: MatchType,
     season: int,
     won: bool,
-    is_overtime: bool,
-    team_score: int
+    is_overtime: bool
 ):
     # Try to get existing stats
     response = await session.execute(
@@ -73,7 +73,6 @@ async def update_player_stats(
             wins=0,
             losses=0,
             otl=0,
-            points=0,
             streak=0,
             longest_streak=0
         )
@@ -93,6 +92,3 @@ async def update_player_stats(
     else:
         stats.losses += 1
         stats.streak = 0
-
-    # Points should increase by team score
-    stats.points += team_score

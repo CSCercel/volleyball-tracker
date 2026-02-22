@@ -152,12 +152,6 @@ async def submit_match_results(
     # Update stats for all players in the match
     for match_player in match_players:
         player_won = (match_player.color == winner) 
-
-        # Check which score to add to points
-        if match_player.color == "blue":
-            team_score = results.blue_score
-        else:
-            team_score = results.red_score
         
         await update_player_stats(
             session=session,
@@ -165,8 +159,7 @@ async def submit_match_results(
             match_type=match.match_type,
             season=match.season,
             won=player_won,
-            is_overtime=is_overtime,
-            team_score=team_score
+            is_overtime=is_overtime
         )
     
     await session.commit()

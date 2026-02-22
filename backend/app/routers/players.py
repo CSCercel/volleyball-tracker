@@ -44,7 +44,6 @@ async def create_player(
             wins=0,
             losses=0,
             otl=0,
-            points=0,
             streak=0,
             longest_streak=0
         )

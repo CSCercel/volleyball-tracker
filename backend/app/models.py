@@ -46,7 +46,6 @@ class PlayerStats(Base):
     wins = Column(Integer, default=0)
     losses = Column(Integer, default=0)
     otl = Column(Integer, default=0)
-    points = Column(Integer, default=0)
     streak = Column(Integer, default=0)
     longest_streak = Column(Integer, default=0)
 
