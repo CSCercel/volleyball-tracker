@@ -1,5 +1,7 @@
 import streamlit as st
 from utils import api
+from utils.court import plot_match_court
+from utils.misc_functions import shuffle_players
 from datetime import date
 
 st.set_page_config(page_title="Matches", page_icon="🏐", layout="wide")
@@ -20,16 +22,16 @@ with tab1:
         if len(player_names) < 2:
             st.warning("⚠️ Need at least 2 players to create a match. Add players first!")
         else:
-            match_type = st.selectbox("Match Type", ["indoor", "beach"])
-            
             col1, col2 = st.columns(2)
             
             with col1:
-                st.markdown("**🔵 Blue Team**")
+                match_type = st.pills("Match Type", ["indoor", "beach"])
+
                 blue_team = st.multiselect("Select Blue Team", player_names, key="blue")
             
             with col2:
-                st.markdown("**🔴 Red Team**")
+                draft_type = st.pills("Draft Type", ["random", "manual"])
+
                 # Filter out players already on blue team
                 available_for_red = [p for p in player_names if p not in blue_team]
                 red_team = st.multiselect("Select Red Team", available_for_red, key="red")
@@ -38,6 +40,11 @@ with tab1:
                 if not blue_team or not red_team:
                     st.error("Both teams need at least one player!")
                 else:
+
+                    # If draft type is random, shuffle teams
+                    if draft_type == "random":
+                        blue_team, red_team = shuffle_players(blue_team + red_team)
+
                     try:
                         match = api.create_match({
                             "match_type": match_type,
@@ -49,7 +56,7 @@ with tab1:
                         blue, red = st.columns(2, border=True)
 
                         with blue:
-                            st.subheader("Blue Team")
+                            st.subheader("**🔵 Blue Team**")
                             blue_players = [p["name"] for p in match["blue_team"]]
 
                             team_str = ""
@@ -57,11 +64,11 @@ with tab1:
                                 team_str += player + ","
 
                             st.markdown(team_str[:-1])
-                            st.metric("Odds", match["blue_odds"])
+                            st.metric("Odds", f"{round(match['blue_odds'] * 100)}%")
                             st.metric("MVP", match['blue_mvp'])
 
                         with red:
-                            st.subheader("Red Team")
+                            st.subheader("**🔴 Red Team**")
                             red_players = [p["name"] for p in match["red_team"]]
                             team_str = ""
                             for player in red_players:
@@ -69,14 +76,18 @@ with tab1:
 
                             st.markdown(team_str[:-1])
 
-                            st.metric("Odds", match["red_odds"])
+                            st.metric("Odds", f"{round(match['red_odds'] * 100)}%")
                             st.metric("MVP", match['red_mvp'])
+
+                        fig = plot_match_court(blue_players, red_players)
+                        st.pyplot(fig)
 
                     except Exception as e:
                         st.error(f"Error: {e}")
     
     except Exception as e:
         st.error(f"Failed to load players: {e}")
+
 
 # TAB 2: Draft matches
 with tab2:
@@ -95,13 +106,13 @@ with tab2:
                     with col1:
                         st.markdown("**🔵 Blue Team**")
                         for player in match['blue_team']:
-                            st.text(f"- {player['name']} ({player.get('points', 0)} pts)")
+                            st.text(f"- {player['name']}")
                     
                     with col2:
                         st.markdown("**🔴 Red Team**")
                         for player in match['red_team']:
-                            st.text(f"- {player['name']} ({player.get('points', 0)} pts)")
-                    
+                            st.text(f"- {player['name']}")
+
                     st.markdown("---")
                     st.markdown("**Submit Results**")
                     
@@ -138,12 +149,18 @@ with tab3:
         "Select range of dates",
         min_value=date(date.today().year, 1, 1),
         max_value=date(date.today().year, 12, 31),
-        value=date.today()
+        value=(date.today(), date.today())
     )
 
+    if len(date_range) == 2: 
+        start_date = date_range[0]
+        end_date = date_range[1]
+    else:
+        start_date = date_range[0]
+        end_date = date_range[0]
+
     try:
-        completed = api.get_matches(status="completed")
-        
+        completed = api.get_matches(status="completed", start_date=start_date, end_date=end_date)
         if not completed:
             st.info("No completed matches yet.")
         else:

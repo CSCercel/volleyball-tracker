@@ -60,16 +60,16 @@ def create_match(match_data: Dict) -> Dict:
 
 
 def get_matches(
-    start_date: date,
-    end_date: date,
     status: str = "all",
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
 ) -> List[Dict]:
     response = requests.get(
         f"{API_BASE}/matches/",
         params={
             "status": status,
-            "start_date": str(start_date),
-            "end_date": str(end_date)
+            "start_date": str(start_date) if start_date else None,
+            "end_date": str(end_date) if end_date else None
         }
     )
     response.raise_for_status()

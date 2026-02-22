@@ -53,6 +53,7 @@ class PlayerStatsResponse(BaseModel):
     wins: int
     losses: int
     otl: int
+    points: int
     streak: int
     longest_streak: int
 
@@ -60,11 +61,6 @@ class PlayerStatsResponse(BaseModel):
     @property
     def played(self) -> int:
         return self.wins + self.losses + self.otl
-
-    @computed_field
-    @property
-    def points(self) -> int:
-        return self.wins * 2 + self.otl
 
     @computed_field
     @property

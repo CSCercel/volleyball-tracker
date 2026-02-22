@@ -44,6 +44,7 @@ async def create_player(
             wins=0,
             losses=0,
             otl=0,
+            points=0,
             streak=0,
             longest_streak=0
         )
@@ -85,24 +86,3 @@ async def get_player(name: str, session: AsyncSession = Depends(get_async_sessio
             detail="Player not found"
         ) 
     return player
-
-
-@router.delete("/{player_id}")
-async def delete_player(
-    name: str,
-    user: User = Depends(current_active_user), 
-    session: AsyncSession = Depends(get_async_session)
-):
-    response = await session.execute(
-                select(Player).options(selectinload(Player.stats)).where(Player.name == name)
-    )
-
-    player = response.scalar_one_or_none()
-    if not player:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Player not found"
-        )
-
-    await session.delete(player)
-    await session.commit()
