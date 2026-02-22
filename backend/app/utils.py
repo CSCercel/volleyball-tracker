@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.models import Match, MatchPlayer, Player, PlayerStats
 from app.schemas import PlayerBase, MatchResponse, MatchType, TeamColor
 
@@ -10,23 +11,26 @@ def get_player_base(player: Player, match_type: MatchType, season: int) -> Playe
     )
     
     points = (stats.wins * 2 + stats.otl) if stats else 0
-    
-    return PlayerBase(id=player.id, name=player.name, points=points)
+    total = stats.wins + stats.otl + stats.losses
+
+    if total == 0:
+        avg_points = 0
+    else:
+        avg_points = points / total
+
+    return PlayerBase(id=player.id, name=player.name, avg_points=avg_points)
 
 
-def build_match_response(match: Match, session: Session) -> MatchResponse:
-    match_players = session.query(MatchPlayer).filter(
-        MatchPlayer.match_id == match.id
-    ).join(Player).all()
+def build_match_response(match: Match) -> MatchResponse:
     
     blue_team_players = [
         get_player_base(mp.player, match.match_type, match.season)
-        for mp in match_players if mp.color == TeamColor.blue
+        for mp in match.players if mp.color == TeamColor.blue
     ]
     
     red_team_players = [
         get_player_base(mp.player, match.match_type, match.season)
-        for mp in match_players if mp.color == TeamColor.red
+        for mp in match.players if mp.color == TeamColor.red
     ]
     
     return MatchResponse(
@@ -42,8 +46,8 @@ def build_match_response(match: Match, session: Session) -> MatchResponse:
     )
 
 
-def update_player_stats(
-    session: Session,
+async def update_player_stats(
+    session: AsyncSession,
     player_id: int,
     match_type: MatchType,
     season: int,
@@ -51,11 +55,15 @@ def update_player_stats(
     is_overtime: bool
 ):
     # Try to get existing stats
-    stats = session.query(PlayerStats).filter(
-        PlayerStats.player_id == player_id,
-        PlayerStats.match_type == match_type,
-        PlayerStats.season == season
-    ).first()
+    response = await session.execute(
+                select(PlayerStats).filter(
+                    PlayerStats.player_id == player_id,
+                    PlayerStats.match_type == match_type,
+                    PlayerStats.season == season
+                )
+    )
+
+    stats = response.scalar_one_or_none()
     
     if not stats:
         stats = PlayerStats(

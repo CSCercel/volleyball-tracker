@@ -1,18 +1,18 @@
 import os
 import uuid
-from typing import Optional, Generator
-from fastapi import Depends, Request
+from typing import Optional
+from fastapi import APIRouter, Depends, Request
 from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin
 from fastapi_users.authentication import (
     AuthenticationBackend,
     BearerTransport,
     JWTStrategy,
 )
-from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
-from sqlalchemy.orm import Session
+from fastapi_users.db import SQLAlchemyUserDatabase
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import User
-from app.database import get_db
+from app.database import get_async_session
 
 SECRET = os.getenv("SECRET_KEY", "local-key")
 
@@ -24,14 +24,20 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     async def on_after_register(self, user: User, request: Optional[Request] = None):
         print(f"User {user.id} has registered.")
 
+    async def on_after_forgot_password(self, user: User, token: str, request: Optional[Request] = None):
+        print(f"User {user.id} has forgot their password. Reset token: {token}")
 
-def get_user_db(session: Session = Depends(get_db)):
+    async def on_after_request_verify(self, user: User, token: str, request: Optional[Request] = None):
+        print(f"Verification requested for user {user.id}. Verification token: {token}")
+
+
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
     yield SQLAlchemyUserDatabase(session, User)
 
 
-def get_user_manager(
+async def get_user_manager(
         user_db: SQLAlchemyUserDatabase = Depends(get_user_db)
-) -> Generator[UserManager, None, None]:
+):
     yield UserManager(user_db)
 
 

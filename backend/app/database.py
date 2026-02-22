@@ -1,32 +1,27 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
 import os
 from dotenv import load_dotenv
+
+from collections.abc import AsyncGenerator
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.orm import declarative_base
 
 
 # Load environment variables from .env file
 load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
 
-engine = create_engine(DATABASE_URL)
+engine = create_async_engine(DATABASE_URL)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
 Base = declarative_base()
 
-def get_db():
-    """
-    Generator function that yields a database session.
-    The session is automatically closed after use.
-    
-    Usage in FastAPI:
-        @app.get("/endpoint")
-        def endpoint(db: Session = Depends(get_db)):
-            # use db here
-    """
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+
+async def create_db_and_tables():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        yield session

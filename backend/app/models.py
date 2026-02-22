@@ -7,23 +7,16 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from fastapi_users.db import SQLAlchemyBaseUserTable
+from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyBaseUserTableUUID
 
 from sqlalchemy.types import MatchType
 from app.database import Base
 from app.schemas import MatchType, TeamColor
 
 
-class User(SQLAlchemyBaseUserTable[uuid.UUID], Base):
+class User(SQLAlchemyBaseUserTableUUID, Base):
     __tablename__ = "users"
     
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False)
-    is_superuser = Column(Boolean, default=False, nullable=False)
-    is_verified = Column(Boolean, default=True, nullable=False)
-
 
 class Player(Base):
     __tablename__ = "players"

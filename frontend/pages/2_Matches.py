@@ -1,5 +1,6 @@
 import streamlit as st
 from utils import api
+from datetime import date
 
 st.set_page_config(page_title="Matches", page_icon="🏐", layout="wide")
 
@@ -44,8 +45,33 @@ with tab1:
                             "red_team": red_team
                         })
                         st.success("✅ Match created!")
-                        st.json(match)
-                        st.rerun()
+                        
+                        blue, red = st.columns(2, border=True)
+
+                        with blue:
+                            st.subheader("Blue Team")
+                            blue_players = [p["name"] for p in match["blue_team"]]
+
+                            team_str = ""
+                            for player in blue_players:
+                                team_str += player + ","
+
+                            st.markdown(team_str[:-1])
+                            st.metric("Odds", match["blue_odds"])
+                            st.metric("MVP", match['blue_mvp'])
+
+                        with red:
+                            st.subheader("Red Team")
+                            red_players = [p["name"] for p in match["red_team"]]
+                            team_str = ""
+                            for player in red_players:
+                                team_str += player + ","
+
+                            st.markdown(team_str[:-1])
+
+                            st.metric("Odds", match["red_odds"])
+                            st.metric("MVP", match['red_mvp'])
+
                     except Exception as e:
                         st.error(f"Error: {e}")
     
@@ -81,14 +107,22 @@ with tab2:
                     
                     col_a, col_b, col_c = st.columns(3)
                     with col_a:
-                        blue_score = st.number_input("Blue Score", min_value=0, key=f"blue_{match['id']}")
+                        blue_score = st.number_input("Blue Score", min_value=None, value=None, key=f"blue_{match['id']}")
                     with col_b:
-                        red_score = st.number_input("Red Score", min_value=0, key=f"red_{match['id']}")
+                        red_score = st.number_input("Red Score", min_value=None, value=None, key=f"red_{match['id']}")
                     with col_c:
                         if st.button("Submit Results", key=f"submit_{match['id']}"):
                             try:
                                 result = api.submit_match_results(match['id'], blue_score, red_score)
                                 st.success("✅ Results submitted!")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"Error: {e}")
+
+                        elif st.button("Delete Draft", key=f"delete_{match['id']}"):
+                            try:
+                                result = api.delete_match(match['id'])
+                                st.success("✅ Draft deleted!")
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"Error: {e}")
@@ -99,7 +133,14 @@ with tab2:
 # TAB 3: Completed matches
 with tab3:
     st.subheader("Completed Matches")
-    
+   
+    date_range = st.date_input(
+        "Select range of dates",
+        min_value=date(date.today().year, 1, 1),
+        max_value=date(date.today().year, 12, 31),
+        value=date.today()
+    )
+
     try:
         completed = api.get_matches(status="completed")
         

@@ -1,4 +1,3 @@
-from uuid import UUID
 import uuid
 from pydantic import UUID4, BaseModel, computed_field, EmailStr
 from typing import Optional, List
@@ -7,8 +6,22 @@ from enum import Enum
 from fastapi_users import schemas
 
 
+class UserCreate(schemas.BaseUserCreate):
+    pass
+
+
 class UserRead(schemas.BaseUser[uuid.UUID]):
     pass
+
+
+class UserUpdate(schemas.BaseUserUpdate):
+    pass
+
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+    registration_code: str
 
 
 class MatchType(str, Enum):
@@ -24,7 +37,7 @@ class TeamColor(str, Enum):
 class PlayerBase(BaseModel):
     id: int
     name: str
-    points: int
+    avg_points: float
 
     class Config:
         from_attributes = True
@@ -61,6 +74,15 @@ class PlayerStatsResponse(BaseModel):
             return 0
         else:
             return self.wins / total
+
+    @computed_field
+    @property
+    def avg_points(self) -> float:
+        total = self.played
+        if total == 0:
+            return 0
+        else:
+            return self.points / total
 
     class Config:
         from_attributes = True
@@ -133,11 +155,11 @@ class MatchResponse(BaseModel):
     @property
     def blue_mvp(self) -> str:
         best_player = self.blue_team[0].name
-        best_player_points = self.blue_team[0].points
+        best_player_points = self.blue_team[0].avg_points
         for p in self.blue_team:
-            if p.points > best_player_points:
+            if p.avg_points > best_player_points:
                 best_player = p.name
-                best_player_points = p.points
+                best_player_points = p.avg_points
 
         return best_player
 
@@ -145,11 +167,11 @@ class MatchResponse(BaseModel):
     @property
     def red_mvp(self) -> str:
         best_player = self.red_team[0].name
-        best_player_points = self.red_team[0].points
+        best_player_points = self.red_team[0].avg_points
         for p in self.red_team:
-            if p.points > best_player_points:
+            if p.avg_points > best_player_points:
                 best_player = p.name
-                best_player_points = p.points
+                best_player_points = p.avg_points
 
         return best_player
     
@@ -158,9 +180,9 @@ class MatchResponse(BaseModel):
     def blue_odds(self) -> float:
         blue_points, red_points = 0, 0
         for p in self.blue_team:
-            blue_points += p.points
+            blue_points += p.avg_points
         for p in self.red_team:
-            red_points += p.points
+            red_points += p.avg_points
         
         if blue_points + red_points == 0:
             return 0.5

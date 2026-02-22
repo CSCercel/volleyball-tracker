@@ -133,6 +133,5 @@ with tab2:
             try:
                 api.create_player(player_name)
                 st.success(f"✅ Added {player_name}")
-                st.rerun()
             except Exception as e:
                 st.error(f"Error: {e}")

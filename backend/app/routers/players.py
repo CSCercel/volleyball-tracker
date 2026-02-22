@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from datetime import datetime
 
-from app.database import get_db
+from app.database import get_async_session
 from app.auth import current_active_user
 from app.models import Player, PlayerStats, User
 from app.schemas import MatchType, PlayerCreate, PlayerResponse
@@ -13,13 +15,15 @@ router = APIRouter(prefix="/players", tags=["players"])
 
 
 @router.post("/create", response_model=PlayerResponse)
-def create_player(
+async def create_player(
     player: PlayerCreate,
     user: User = Depends(current_active_user),
-    session: Session = Depends(get_db)
+    session: AsyncSession = Depends(get_async_session)
 ):
-    response = session.query(Player).filter(Player.name == player.name)
-    existing_player = response.first()
+    response = await session.execute(
+        select(Player).filter(Player.name == player.name)
+    )
+    existing_player = response.scalar_one_or_none()
     if existing_player:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -28,6 +32,8 @@ def create_player(
 
     # Create new player
     new_player = Player(name=player.name)
+    session.add(new_player)
+    await session.flush()
 
     # Initialize stats for both match types
     for match_type in MatchType:
@@ -41,49 +47,62 @@ def create_player(
             streak=0,
             longest_streak=0
         )
-        new_player.stats.append(stats)
-        
-    session.add(new_player)
-    session.commit()
+        session.add(stats)
 
-    # Calculate computed fields
-    session.refresh(new_player)
+    await session.commit()
 
-    return new_player
+    result = await session.execute(
+        select(Player).options(selectinload(Player.stats)).filter(Player.id == new_player.id)
+    )
+
+    new_player_complete = result.scalar_one_or_none()
+
+    return new_player_complete
 
 
 @router.get("/", response_model=List[PlayerResponse])
-def list_players(session: Session = Depends(get_db)):
-    response = session.query(Player).order_by(Player.name).all()
+async def list_players(session: AsyncSession = Depends(get_async_session)):
+    response = await session.execute(
+        select(Player).options(selectinload(Player.stats)).order_by(Player.name)
+    )
 
-    return response
+    players = [row[0] for row in response.all()]
+
+    return players
 
 
 @router.get("/{name}", response_model=PlayerResponse)
-def get_player(name: str, session: Session = Depends(get_db)):
-    response = session.query(Player).where(Player.name == name).first()
-    if not response:
+async def get_player(name: str, session: AsyncSession = Depends(get_async_session)):
+    response = await session.execute(
+        select(Player).options(selectinload(Player.stats)).where(Player.name == name)
+    )
+
+    player = response.scalar_one_or_none()
+
+    if not player:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Player not found"
         ) 
-    return response
+    return player
 
 
 @router.delete("/{player_id}")
-def delete_player(
+async def delete_player(
     name: str,
     user: User = Depends(current_active_user), 
-    session: Session = Depends(get_db)
+    session: AsyncSession = Depends(get_async_session)
 ):
-    response = session.query(Player).where(Player.name == name)
+    response = await session.execute(
+                select(Player).options(selectinload(Player.stats)).where(Player.name == name)
+    )
 
-    player = response.first()
+    player = response.scalar_one_or_none()
     if not player:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Player not found"
         )
 
-    session.delete(player)
-    session.commit()
+    await session.delete(player)
+    await session.commit()
