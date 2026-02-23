@@ -8,17 +8,21 @@ from sqlalchemy.orm import declarative_base
 
 # Load environment variables from .env file
 load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-engine = create_async_engine(
-    DATABASE_URL,
-    connect_args={
-        "prepared_statement_cache_size": 0,
-        "statement_cache_size": 0,
-    },
-    pool_recycle=300,
-    pool_pre_ping=True
-)
+if DATABASE_URL:
+    engine = create_async_engine(
+        DATABASE_URL,
+        connect_args={
+            "prepared_statement_cache_size": 0,
+            "statement_cache_size": 0,
+        },
+        pool_recycle=300,
+        pool_pre_ping=True
+    )
+else:
+    engine = create_async_engine("sqlite+aiosqlite:///./test.db")
+
 
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 

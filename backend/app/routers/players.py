@@ -45,7 +45,9 @@ async def create_player(
             losses=0,
             otl=0,
             streak=0,
-            longest_streak=0
+            longest_streak=0,
+            scored=0,
+            conceded=0
         )
         session.add(stats)
 

@@ -10,15 +10,15 @@ def get_player_base(player: Player, match_type: MatchType, season: int) -> Playe
         None
     )
     
-    points = (stats.wins * 2 + stats.otl) if stats else 0
-    total = stats.wins + stats.otl + stats.losses
+    scored = stats.scored if stats else 0
+    conceded = stats.conceded if stats else 0
 
-    if total == 0:
-        avg_points = 0
+    if conceded == 0:
+        efficiency = 0
     else:
-        avg_points = points / total
+        efficiency = scored / conceded
 
-    return PlayerBase(id=player.id, name=player.name, avg_points=avg_points)
+    return PlayerBase(id=player.id, name=player.name, efficiency=efficiency)
 
 
 def build_match_response(match: Match) -> MatchResponse:
@@ -52,7 +52,9 @@ async def update_player_stats(
     match_type: MatchType,
     season: int,
     won: bool,
-    is_overtime: bool
+    is_overtime: bool,
+    scored: int,
+    conceded: int
 ):
     # Try to get existing stats
     response = await session.execute(
@@ -74,7 +76,9 @@ async def update_player_stats(
             losses=0,
             otl=0,
             streak=0,
-            longest_streak=0
+            longest_streak=0,
+            scored=0,
+            conceded=0
         )
         session.add(stats)
 
@@ -92,3 +96,7 @@ async def update_player_stats(
     else:
         stats.losses += 1
         stats.streak = 0
+
+    # Update scored/conceded fields
+    stats.scored += scored
+    stats.conceded += conceded

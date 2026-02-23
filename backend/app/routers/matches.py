@@ -153,13 +153,23 @@ async def submit_match_results(
     for match_player in match_players:
         player_won = (match_player.color == winner) 
         
+        # Check which score to add to scored/conceded
+        if match_player.color == "blue":
+            team_score = results.blue_score
+            opp_score = results.red_score
+        else:
+            team_score = results.red_score
+            opp_score = results.blue_score
+
         await update_player_stats(
             session=session,
             player_id=match_player.player_id,
             match_type=match.match_type,
             season=match.season,
             won=player_won,
-            is_overtime=is_overtime
+            is_overtime=is_overtime,
+            scored=team_score,
+            conceded=opp_score
         )
     
     await session.commit()

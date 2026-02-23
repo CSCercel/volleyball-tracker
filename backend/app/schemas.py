@@ -37,7 +37,7 @@ class TeamColor(str, Enum):
 class PlayerBase(BaseModel):
     id: int
     name: str
-    avg_points: float
+    efficiency: float
 
     class Config:
         from_attributes = True
@@ -55,6 +55,8 @@ class PlayerStatsResponse(BaseModel):
     otl: int
     streak: int
     longest_streak: int
+    scored: int
+    conceded: int
 
     @computed_field
     @property
@@ -83,6 +85,15 @@ class PlayerStatsResponse(BaseModel):
             return 0
         else:
             return self.points / total
+
+    @computed_field
+    @property
+    def efficiency(self) -> float:
+        conceded = self.conceded
+        if conceded == 0:
+            return 0
+        else:
+            return self.scored / conceded
 
     class Config:
         from_attributes = True
@@ -155,11 +166,11 @@ class MatchResponse(BaseModel):
     @property
     def blue_mvp(self) -> str:
         best_player = self.blue_team[0].name
-        best_player_points = self.blue_team[0].avg_points
+        best_player_eff = self.blue_team[0].efficiency
         for p in self.blue_team:
-            if p.avg_points > best_player_points:
+            if p.efficiency > best_player_eff:
                 best_player = p.name
-                best_player_points = p.avg_points
+                best_player_eff = p.efficiency
 
         return best_player
 
@@ -167,27 +178,27 @@ class MatchResponse(BaseModel):
     @property
     def red_mvp(self) -> str:
         best_player = self.red_team[0].name
-        best_player_points = self.red_team[0].avg_points
+        best_player_eff = self.red_team[0].efficiency
         for p in self.red_team:
-            if p.avg_points > best_player_points:
+            if p.efficiency > best_player_eff:
                 best_player = p.name
-                best_player_points = p.avg_points
+                best_player_eff = p.efficiency
 
         return best_player
     
     @computed_field
     @property
     def blue_odds(self) -> float:
-        blue_points, red_points = 0, 0
+        blue_eff, red_eff = 0, 0
         for p in self.blue_team:
-            blue_points += p.avg_points
+            blue_eff += p.efficiency
         for p in self.red_team:
-            red_points += p.avg_points
+            red_eff += p.efficiency
         
-        if blue_points + red_points == 0:
+        if blue_eff + red_eff == 0:
             return 0.5
         else:
-            return blue_points / (blue_points + red_points)
+            return blue_eff / (blue_eff + red_eff)
 
     @computed_field
     @property

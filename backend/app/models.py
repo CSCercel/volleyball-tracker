@@ -48,6 +48,8 @@ class PlayerStats(Base):
     otl = Column(Integer, default=0)
     streak = Column(Integer, default=0)
     longest_streak = Column(Integer, default=0)
+    scored = Column(Integer, default=0)
+    conceded = Column(Integer, default=0)
 
     player = relationship("Player", back_populates="stats")
 
