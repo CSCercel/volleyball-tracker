@@ -10,7 +10,15 @@ from sqlalchemy.orm import declarative_base
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
 
-engine = create_async_engine(DATABASE_URL)
+engine = create_async_engine(
+    DATABASE_URL,
+    connect_args={
+        "prepared_statement_cache_size": 0,
+        "statement_cache_size": 0,
+    },
+    pool_recycle=300,
+    pool_pre_ping=True
+)
 
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 

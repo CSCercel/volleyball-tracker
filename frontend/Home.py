@@ -61,7 +61,7 @@ try:
         else:
             df = pd.DataFrame(leaderboard_data)
             df['Rank'] = df.apply(lambda row: get_rank(row['Avg Points'], row['Played']), axis=1)
-            df = df.sort_values('Avg Points', ascending=False).reset_index(drop=True)
+            df = df.sort_values('Points', ascending=False).reset_index(drop=True)
             df.index += 1  # Start rank at 1
             
             st.dataframe(df, use_container_width=True, column_config={"Avg Points": None})
