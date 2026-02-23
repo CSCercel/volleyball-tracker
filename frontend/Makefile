@@ -1,7 +1,7 @@
 .PHONY: dev install
 
 dev:
-	uv run streamlit run app.py
+	uv run streamlit run Home.py
 
 install:
 	uv sync

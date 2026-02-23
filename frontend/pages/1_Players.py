@@ -1,5 +1,7 @@
 import streamlit as st
 from utils import api
+from utils.misc_functions import get_rank
+
 
 st.set_page_config(page_title="Players", page_icon="👥", layout="wide")
 
@@ -82,8 +84,12 @@ with tab1:
                     points = indoor_stats['points']
                     previous_points = previous_indoor_stats['points'] if previous_indoor_stats else None
                     delta_points = points - previous_points if previous_points else None
-
+                    
                     st.metric("Points", points, delta=delta_points)
+
+                # Get Rank
+                rank = get_rank(indoor_stats['avg_points'], indoor_stats['played'])
+                st.image(f"assets/{rank}.png", caption=rank)
             else:
                 st.markdown(indoor_stats)
 
@@ -118,6 +124,10 @@ with tab1:
                     delta_points = points - previous_points if previous_points else None
 
                     st.metric("Points", points, delta=delta_points)
+
+                # Get Rank
+                rank = get_rank(beach_stats['avg_points'], beach_stats['played'])
+                st.image(f"assets/{rank}.png", caption=rank)
             else:
                 st.markdown(beach_stats)
 

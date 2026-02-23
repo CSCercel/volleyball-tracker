@@ -4,6 +4,7 @@ from utils.court import plot_match_court
 from utils.misc_functions import shuffle_players
 from datetime import date
 
+
 st.set_page_config(page_title="Matches", page_icon="🏐", layout="wide")
 
 st.title("🏐 Matches")
@@ -25,12 +26,12 @@ with tab1:
             col1, col2 = st.columns(2)
             
             with col1:
-                match_type = st.pills("Match Type", ["indoor", "beach"])
+                match_type = st.pills("Match Type", ["indoor", "beach"], default="indoor")
 
                 blue_team = st.multiselect("Select Blue Team", player_names, key="blue")
             
             with col2:
-                draft_type = st.pills("Draft Type", ["random", "manual"])
+                draft_type = st.pills("Draft Type", ["random", "manual"], default="random")
 
                 # Filter out players already on blue team
                 available_for_red = [p for p in player_names if p not in blue_team]
