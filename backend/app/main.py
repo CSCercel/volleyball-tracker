@@ -72,7 +72,7 @@ app.include_router(matches.router)
 def root():
     return {
         "message": "Volleyball Tracker API",
-        "version": "0.1.0",
+        "version": "1.0.0",
         "docs": "/docs" 
     }
 
