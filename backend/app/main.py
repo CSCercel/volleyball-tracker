@@ -2,12 +2,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
+import os
+from dotenv import load_dotenv
 
 from app.auth import auth_backend, fastapi_users
 from app.models import Base
 from app.database import create_db_and_tables, get_async_session
 from app.routers import players, matches, register
 from app.schemas import UserCreate, UserRead, UserUpdate
+
+
+# Load Frontend URL
+load_dotenv()
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8501")
 
 
 @asynccontextmanager
@@ -25,7 +32,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
