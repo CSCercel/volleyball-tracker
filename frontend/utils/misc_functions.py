@@ -17,8 +17,12 @@ def shuffle_players(players: Dict) -> Tuple[List[Dict], List[Dict]]:
     return blue_team, red_team
 
 
-# Function to calculate ranks
-def get_rank(avg_points: float, matches_played: int) -> str:
+# Functions to calculate ranks
+def calculate_mmr(avg_points: float, efficiency: float) -> float:
+    return avg_points * efficiency
+
+
+def get_rank(mmr: float, matches_played: int) -> str:
     ranks = {
         "Iron I": [0, 0.1],
         "Iron II": [0.1, 0.2],
@@ -47,5 +51,5 @@ def get_rank(avg_points: float, matches_played: int) -> str:
         return "Unranked"
     else:
         for rank_name, bounds in ranks.items():
-            if avg_points >= bounds[0] and avg_points < bounds[1]:
+            if mmr >= bounds[0] and mmr < bounds[1]:
                 return rank_name

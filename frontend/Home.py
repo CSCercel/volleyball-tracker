@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from utils import api
-from utils.misc_functions import get_rank
+from utils.misc_functions import calculate_mmr, get_rank
 
 
 st.set_page_config(
@@ -53,18 +53,22 @@ try:
                         'OTL': stat['otl'],
                         'Points': stat['points'],
                         'Win Rate': f"{stat['winrate']:.1%}",
-                        "Avg Points": stat['avg_points']
+                        "Avg Points": stat['avg_points'],
+                        "Efficiency": stat['efficiency']
                     })
         
         if not leaderboard_data:
             st.info(f"No stats for {match_type} in season {season}")
         else:
             df = pd.DataFrame(leaderboard_data)
-            df['Rank'] = df.apply(lambda row: get_rank(row['Avg Points'], row['Played']), axis=1)
-            df = df.sort_values('Points', ascending=False).reset_index(drop=True)
+            df['MMR'] = df.apply(lambda row: calculate_mmr(row['Avg Points'], row['Efficiency']), axis=1)
+            df['Rank'] = df.apply(lambda row: get_rank(row['MMR'], row['Played']), axis=1)
+            df = df.sort_values('MMR', ascending=False).reset_index(drop=True)
             df.index += 1  # Start rank at 1
             
-            st.dataframe(df, use_container_width=True, column_config={"Avg Points": None})
+            st.dataframe(df, use_container_width=True, 
+                         column_config={"Avg Points": None, "Efficiency" : None, "MMR": None}
+            )
 
 except Exception as e:
     st.error(f"Failed to load leaderboard: {e}")
