@@ -21,7 +21,7 @@ if not st.session_state.authenticated:
                 st.success("✅ Logged in!")
                 st.rerun()
             except Exception as e:
-                st.error(f"Login failed: {str(e)}")
+                st.error("Login failed")
 else:
     st.success(f"✅ Logged in as {st.session_state.user_email}")
     if st.button("Logout"):

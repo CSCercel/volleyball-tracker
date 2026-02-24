@@ -71,4 +71,4 @@ try:
             )
 
 except Exception as e:
-    st.error(f"Failed to load leaderboard: {e}")
+    st.error("Failed to load leaderboard")

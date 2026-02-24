@@ -21,7 +21,6 @@ router = APIRouter(prefix="/matches", tags=["matches"])
 @router.post("/create", response_model=MatchResponse)
 async def create_match(
     request: MatchCreate,
-    user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session)
 ):
     # Validate teams have players
@@ -249,7 +248,6 @@ async def list_matches(
 @router.delete("/{match_id}")
 async def delete_match(
     match_id: UUID,
-    user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session)
 ):
     response = await session.execute(

@@ -84,10 +84,10 @@ with tab1:
                         st.pyplot(fig)
 
                     except Exception as e:
-                        st.error(f"Error: {e}")
+                        st.error("Failed to create Match")
     
     except Exception as e:
-        st.error(f"Failed to load players: {e}")
+        st.error("Failed to load players")
 
 
 # TAB 2: Draft matches
@@ -129,7 +129,7 @@ with tab2:
                                 st.success("✅ Results submitted!")
                                 st.rerun()
                             except Exception as e:
-                                st.error(f"Error: {e}")
+                                st.error("Failed to submit Match")
 
                         elif st.button("Delete Draft", key=f"delete_{match['id']}"):
                             try:
@@ -137,10 +137,10 @@ with tab2:
                                 st.success("✅ Draft deleted!")
                                 st.rerun()
                             except Exception as e:
-                                st.error(f"Error: {e}")
+                                st.error("Failed to delete draft")
     
     except Exception as e:
-        st.error(f"Failed to load draft matches: {e}")
+        st.error("Failed to load draft matches")
 
 # TAB 3: Completed matches
 with tab3:
@@ -185,4 +185,4 @@ with tab3:
                     st.caption(f"Played: {match['created_at']}")
     
     except Exception as e:
-        st.error(f"Failed to load completed matches: {e}")
+        st.error("Failed to load completed matches")

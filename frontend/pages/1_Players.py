@@ -11,10 +11,13 @@ tab1, tab2 = st.tabs(["Player Profile", "Add Player"])
 
 with tab1:
     st.subheader("Show Player Stats")
-    
-    roster = api.get_players()
-    name_list = [p["name"] for p in roster]
-    option = st.selectbox("Player", name_list)
+   
+    try:
+        roster = api.get_players()
+        name_list = [p["name"] for p in roster]
+        option = st.selectbox("Player", name_list)
+    except Exception as e:
+        st.info("No Players yet!.")
 
     if option:
         player = api.get_player(option)
@@ -144,4 +147,4 @@ with tab2:
                 api.create_player(player_name)
                 st.success(f"✅ Added {player_name}")
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error("Failed to add Player")
