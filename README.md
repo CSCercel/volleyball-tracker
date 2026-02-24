@@ -8,7 +8,7 @@ A Volleyball Web App for tracking matches played with friends:)
 
 
 ## Development
-- *Requires Python >= 3.14*
+- *Requires Python >= 3.12*
 - Clone repo locally
 - run `uv sync` for both backend & frontend to install dependencies (or use pip with virtualenv)
 - If running on Linux, use `make dev` for (backend/frontend) to launch app locally
