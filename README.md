@@ -3,7 +3,7 @@ A Volleyball Web App for tracking matches played with friends:)
 
 
 ## Deployment
-- Available on: [https://whiffball-dashboard.streamlit.app/]
+- Available on: https://whiffball-dashboard.streamlit.app/
 - Please refer to CHANGELOG.md for the Updates!
 
 
