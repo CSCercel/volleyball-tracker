@@ -92,7 +92,7 @@ with tab1:
 
                 # Get Rank
                 rank = get_rank(indoor_stats['avg_points'], indoor_stats['played'])
-                st.image(f"assets/{rank}.png", caption=rank)
+                st.image(f"frontend/assets/{rank}.png", caption=rank)
             else:
                 st.markdown(indoor_stats)
 
@@ -130,7 +130,7 @@ with tab1:
 
                 # Get Rank
                 rank = get_rank(beach_stats['avg_points'], beach_stats['played'])
-                st.image(f"assets/{rank}.png", caption=rank)
+                st.image(f"frontend/assets/{rank}.png", caption=rank)
             else:
                 st.markdown(beach_stats)
 

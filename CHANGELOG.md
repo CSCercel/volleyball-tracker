@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.1] - 2026.02.25
+
+### Added
+
+### Changed
+
+### Fixed
+- Fixed an issue where rank icons were not showing on `Player Profile` page.
+
+
 ## [1.0.0] - 2026.02.24
 
 ### Added
@@ -14,3 +24,5 @@
 - NEW Player Profiles with previous season delta
 - NEW Rank System based on Average Points per match * Efficiency Rating (Only after 10 seasonal games played)
 - Added User Registration for better control of Admin Privileges 
+
+### Fixed
