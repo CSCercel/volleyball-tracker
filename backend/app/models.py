@@ -4,7 +4,6 @@ from sqlalchemy import (
 )
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyBaseUserTableUUID
@@ -40,7 +39,7 @@ class PlayerStats(Base):
     id = Column(Integer, primary_key=True)
 
     player_id = Column(ForeignKey("players.id"))
-    match_type = Column(SQLEnum(MatchType)) 
+    match_type = Column(String, nullable=False) 
     season = Column(Integer, default=datetime.utcnow().year)
 
     wins = Column(Integer, default=0)
@@ -58,7 +57,7 @@ class Match(Base):
     __tablename__ = "matches"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    match_type = Column(SQLEnum(MatchType))
+    match_type = Column(String, nullable=False)
     season = Column(Integer, default=datetime.utcnow().year)
     blue_score = Column(Integer, nullable=True, default=None)
     red_score = Column(Integer, nullable=True, default=None)
@@ -74,7 +73,7 @@ class MatchPlayer(Base):
     id = Column(Integer, primary_key=True)
     match_id = Column(ForeignKey("matches.id"))
     player_id = Column(ForeignKey("players.id"))
-    color = Column(SQLEnum(TeamColor))
+    color = Column(String, nullable=False)
 
     match = relationship("Match", back_populates="players")
     player = relationship("Player")
