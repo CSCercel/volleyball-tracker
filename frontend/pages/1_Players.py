@@ -1,6 +1,6 @@
 import streamlit as st
 from utils import api
-from utils.misc_functions import get_rank
+from utils.misc_functions import calculate_mmr, get_rank
 
 
 st.set_page_config(page_title="Players", page_icon="👥", layout="wide")
@@ -91,7 +91,8 @@ with tab1:
                     st.metric("Points", points, delta=delta_points)
 
                 # Get Rank
-                rank = get_rank(indoor_stats['avg_points'], indoor_stats['played'])
+                mmr = calculate_mmr(indoor_stats['avg_points'], indoor_stats['efficiency'])
+                rank = get_rank(mmr, indoor_stats['played'])
                 st.image(f"frontend/assets/{rank}.png", caption=rank)
             else:
                 st.markdown(indoor_stats)
@@ -129,7 +130,8 @@ with tab1:
                     st.metric("Points", points, delta=delta_points)
 
                 # Get Rank
-                rank = get_rank(beach_stats['avg_points'], beach_stats['played'])
+                mmr = calculate_mmr(beach_stats['avg_points'], beach_stats['efficiency'])
+                rank = get_rank(mmr, beach_stats['played'])
                 st.image(f"frontend/assets/{rank}.png", caption=rank)
             else:
                 st.markdown(beach_stats)

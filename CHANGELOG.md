@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.2] - 2026.03.02
+
+### Added
+
+### Changed
+
+### Fixed
+- Fixed an issue preventing the registration of matches due to SQL Enums.
+- Fixed an issue where ranks were not the same in `Home` page compared to `Player Profile` page.
+
+
 ## [1.0.1] - 2026.02.25
 
 ### Added
