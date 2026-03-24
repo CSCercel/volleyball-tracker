@@ -99,7 +99,7 @@ with tab1:
                 # Create progress bar
                 if rank == "Unranked":
                     st.markdown(f"Play {10 - played} more games to receive a rank!") 
-                if rank == "Sensei":
+                elif rank == "Sensei":
                     st.markdown("Through Heaven and Earth I alone am honored")
                 else:
                     mmr_progress = mmr - math.floor(mmr)
@@ -148,7 +148,7 @@ with tab1:
                 # Create progress bar
                 if rank == "Unranked":
                     st.markdown(f"Play {10 - played} more games to receive a rank!") 
-                if rank == "Sensei":
+                elif rank == "Sensei":
                     st.markdown("Through Heaven and Earth I alone am honored")
                 else:
                     mmr_progress = mmr - math.floor(mmr)
