@@ -97,12 +97,14 @@ with tab1:
                 st.image(f"frontend/assets/{rank}.png", caption=rank)
 
                 # Create progress bar
+                if rank == "Unranked":
+                    st.markdown(f"Play {10 - played} more games to receive a rank!") 
                 if rank == "Sensei":
                     st.markdown("Through Heaven and Earth I alone am honored")
                 else:
                     mmr_progress = mmr - math.floor(mmr)
                     st.progress(mmr_progress, text="Progress towards next rank")
-                    st.markdown(f"{round(mmr_progress * 100, 0)} / 100", text_alignment="right")
+                    st.markdown(f"{int(mmr_progress * 100)} / 100", text_alignment="right")
             else:
                 st.markdown(indoor_stats)
 
@@ -144,12 +146,14 @@ with tab1:
                 st.image(f"frontend/assets/{rank}.png", caption=rank)
                 
                 # Create progress bar
+                if rank == "Unranked":
+                    st.markdown(f"Play {10 - played} more games to receive a rank!") 
                 if rank == "Sensei":
                     st.markdown("Through Heaven and Earth I alone am honored")
                 else:
                     mmr_progress = mmr - math.floor(mmr)
                     st.progress(mmr_progress, text="Progress towards next rank")
-                    st.markdown(f"{round(mmr_progress * 100, 0)} / 100", text_alignment="right")
+                    st.markdown(f"{int(mmr_progress * 100)} / 100", text_alignment="right")
 
             else:
                 st.markdown(beach_stats)
