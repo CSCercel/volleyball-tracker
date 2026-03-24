@@ -95,6 +95,14 @@ with tab1:
                 mmr = calculate_mmr(indoor_stats['avg_points'], indoor_stats['efficiency'])
                 rank = get_rank(mmr, indoor_stats['played'])
                 st.image(f"frontend/assets/{rank}.png", caption=rank)
+
+                # Create progress bar
+                if rank == "Sensei":
+                    st.markdown("Through Heaven and Earth I alone am honored")
+                else:
+                    mmr_progress = mmr - math.floor(mmr)
+                    st.progress(mmr_progress, text="Progress towards next rank")
+                    st.markdown(f"{round(mmr_progress * 100, 0)} / 100", text_alignment="right")
             else:
                 st.markdown(indoor_stats)
 
@@ -141,6 +149,7 @@ with tab1:
                 else:
                     mmr_progress = mmr - math.floor(mmr)
                     st.progress(mmr_progress, text="Progress towards next rank")
+                    st.markdown(f"{round(mmr_progress * 100, 0)} / 100", text_alignment="right")
 
             else:
                 st.markdown(beach_stats)
