@@ -1,0 +1,6 @@
+## Development
+- *Requires Python >= 3.12*
+- Clone repo locally
+- run `uv sync` for both backend & frontend to install dependencies (or use pip with virtualenv)
+- If running on Linux, use `make dev` for (backend/frontend) to launch app locally
+- If running on Windows, run the `dev` command from `Makefile` directly in CMD/Powershell

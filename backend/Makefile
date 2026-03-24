@@ -5,3 +5,4 @@ dev:
 
 install:
 	uv sync
+	uv pip freeze > requirements.txt

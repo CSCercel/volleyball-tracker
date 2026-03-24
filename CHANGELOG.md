@@ -1,5 +1,21 @@
 # Changelog
 
+
+## [1.1.0] - 2026.03.24
+
+### Added
+- Added a progress bar to next rank in `Player Profiles`
+- Added core folder to better control backend components
+- Added a Pydantic Settings model to better control dev/prod workflow
+- Setup alembic migrations so future me can be happy
+
+### Changed
+- Changed python version since PROD is not caught up with 3.13/3.14
+- README has been updated
+
+### Fixed
+
+
 ## [1.0.2] - 2026.03.02
 
 ### Added
