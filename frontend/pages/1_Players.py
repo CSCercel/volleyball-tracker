@@ -1,3 +1,4 @@
+import math
 import streamlit as st
 from utils import api
 from utils.misc_functions import calculate_mmr, get_rank
@@ -133,6 +134,14 @@ with tab1:
                 mmr = calculate_mmr(beach_stats['avg_points'], beach_stats['efficiency'])
                 rank = get_rank(mmr, beach_stats['played'])
                 st.image(f"frontend/assets/{rank}.png", caption=rank)
+                
+                # Create progress bar
+                if rank == "Sensei":
+                    st.markdown("Through Heaven and Earth I alone am honored")
+                else:
+                    mmr_progress = mmr - math.floor(mmr)
+                    st.progress(mmr_progress, text="Progress towards next rank")
+
             else:
                 st.markdown(beach_stats)
 
