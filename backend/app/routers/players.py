@@ -5,10 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from datetime import datetime
 
-from app.database import get_async_session
-from app.auth import current_active_user
-from app.models import Player, PlayerStats, User
-from app.schemas import MatchType, PlayerCreate, PlayerResponse
+from app.core.database import get_async_session
+from app.core.auth import current_active_user
+from app.models.models import Player, PlayerStats, User
+from app.models.schemas import MatchType, PlayerCreate, PlayerResponse
 
 
 router = APIRouter(prefix="/players", tags=["players"])

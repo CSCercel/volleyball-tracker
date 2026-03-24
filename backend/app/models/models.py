@@ -1,16 +1,14 @@
 from sqlalchemy import (
-        Column, Integer, Float, String, Boolean, 
+        Column, Integer, String, 
         DateTime, ForeignKey, UniqueConstraint
 )
 import uuid
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyBaseUserTableUUID
+from fastapi_users.db import SQLAlchemyBaseUserTableUUID
 
-from sqlalchemy.types import MatchType
-from app.database import Base
-from app.schemas import MatchType, TeamColor
+from app.core.database import Base
 
 
 class User(SQLAlchemyBaseUserTableUUID, Base):

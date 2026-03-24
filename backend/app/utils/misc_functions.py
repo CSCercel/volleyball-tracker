@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.models import Match, MatchPlayer, Player, PlayerStats
-from app.schemas import PlayerBase, MatchResponse, MatchType, TeamColor
+
+from app.models.models import Match, MatchPlayer, Player, PlayerStats
+from app.models.schemas import PlayerBase, MatchResponse, MatchType, TeamColor
 
 
 def get_player_base(player: Player, match_type: MatchType, season: int) -> PlayerBase:

@@ -8,11 +8,11 @@ from datetime import date
 
 from sqlalchemy.orm import selectinload
 
-from app.database import get_async_session
-from app.auth import current_active_user
-from app.models import Player, PlayerStats, Match, MatchPlayer, User
-from app.schemas import MatchCreate, MatchResponse, MatchResultRequest, PlayerBase, MatchType, TeamColor
-from app.utils import build_match_response, update_player_stats
+from app.core.database import get_async_session
+from app.core.auth import current_active_user
+from app.models.models import Player, PlayerStats, Match, MatchPlayer, User
+from app.models.schemas import MatchCreate, MatchResponse, MatchResultRequest, PlayerBase, MatchType, TeamColor
+from app.utils.misc_functions import build_match_response, update_player_stats
 
 
 router = APIRouter(prefix="/matches", tags=["matches"])

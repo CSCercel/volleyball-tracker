@@ -11,10 +11,12 @@ from fastapi_users.authentication import (
 from fastapi_users.db import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import User
-from app.database import get_async_session
+from app.models.models import User
+from app.core.database import get_async_session
+from app.core.config import settings
 
-SECRET = os.getenv("SECRET_KEY", "local-key")
+
+SECRET = settings.secret_key
 
 # User Manager
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):

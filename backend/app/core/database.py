@@ -1,32 +1,28 @@
-import os
-from dotenv import load_dotenv
-
 from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import DeclarativeBase
+
+from app.core.config import settings
 
 
-# Load environment variables from .env file
-load_dotenv()
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-if DATABASE_URL:
-    engine = create_async_engine(
-        DATABASE_URL,
-        connect_args={
-            "prepared_statement_cache_size": 0,
-            "statement_cache_size": 0,
-        },
-        pool_recycle=300,
-        pool_pre_ping=True
-    )
+if settings.environment == "development":
+    engine_args = {}
 else:
-    engine = create_async_engine("sqlite+aiosqlite:///./test.db")
+    engine_args = {
+        "connect_args" : {
+            "prepared_statement_cache_size": 0,
+            "statement_cache_size": 0
+        },
+        "pool_recycle": 300,
+        "pool_pre_ping": True
+    }
 
+engine = create_async_engine(settings.database_url, **engine_args)
 
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 
 async def create_db_and_tables():
