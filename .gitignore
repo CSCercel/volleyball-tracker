@@ -6,8 +6,7 @@ __pycache__/
 # database
 *.db
 *.db-journal
-*.sqlite
-*.sqlite3
+postgres_data/
 
 # logs
 *.log

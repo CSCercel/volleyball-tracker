@@ -1,6 +1,18 @@
 # Changelog
 
 
+## [1.1.1] - 2026.04.03
+
+### Added
+
+
+### Changed
+- Changed aiosqlite for postgresql for local development
+- moved `main.py` out of app for simplier CLI control
+
+### Fixed
+
+
 ## [1.1.0] - 2026.03.24
 
 ### Added
