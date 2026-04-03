@@ -21,7 +21,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Volleyball Tracker API",
     description="API for tracking volleyball games and player statistics",
-    version="1.1.0",
+    version="1.1.1",
     lifespan=lifespan
 )
 
@@ -62,14 +62,6 @@ app.include_router(register.router)
 app.include_router(players.router)
 app.include_router(matches.router)
 
-
-@app.get("/")
-def root():
-    return {
-        "message": "Volleyball Tracker API",
-        "version": "1.1.0",
-        "docs": "/docs" 
-    }
 
 @app.get("/health")
 def health_check():
