@@ -15,6 +15,10 @@ type PlayerHandler struct {
 	playerService	*service.PlayerService
 }
 
+func NewPlayerHandler(playerService *service.PlayerService) *PlayerHandler {
+	return &PlayerHandler{playerService: playerService}
+}
+
 func (h *PlayerHandler) RegisterRoutes(r chi.Router) {
 	r.Route("/players", func(r chi.Router) {
 		r.Post("/", h.handleCreatePlayer)
