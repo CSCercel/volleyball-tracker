@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -14,7 +15,19 @@ type PlayerHandler struct {
 	playerService	*service.PlayerService
 }
 
-func (h *PlayerHandler) GetPlayerCareer(w http.ResponseWriter, r *http.Request) {
+func (h *PlayerHandler) RegisterRoutes(r chi.Router) {
+	r.Route("/players", func(r chi.Router) {
+		r.Post("/", h.handleCreatePlayer)
+		r.Get("/{id}/career", h.handleGetPlayerCareer)
+		r.Get("/{id}/season", h.handleGetPlayerSeason)
+		r.Put("/{id}", h.handleEditPlayerName)
+		r.Delete("/{id}", h.handleDeletePlayer)
+		r.Get("/roster", h.handleListRoster)
+		r.Get("/roster/season", h.handleListSeasonRoster)
+	})
+}
+
+func (h *PlayerHandler) handleGetPlayerCareer(w http.ResponseWriter, r *http.Request) {
 	playerID, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "invalid player id", err)
@@ -30,7 +43,7 @@ func (h *PlayerHandler) GetPlayerCareer(w http.ResponseWriter, r *http.Request) 
 	respondWithJSON(w, http.StatusOK, player)
 }
 
-func (h *PlayerHandler) GetPlayerSeason(w http.ResponseWriter, r *http.Request) {
+func (h *PlayerHandler) handleGetPlayerSeason(w http.ResponseWriter, r *http.Request) {
 	playerID, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "invalid player id", err)
@@ -40,7 +53,7 @@ func (h *PlayerHandler) GetPlayerSeason(w http.ResponseWriter, r *http.Request) 
 	// Query params
 	matchType := r.URL.Query().Get("match_type")
 	if matchType == "" {
-		respondWithError(w, http.StatusBadRequest, "match_type is required", err)
+		respondWithError(w, http.StatusBadRequest, "match_type is required", errors.New(""))
 		return
 	}
 
@@ -60,7 +73,7 @@ func (h *PlayerHandler) GetPlayerSeason(w http.ResponseWriter, r *http.Request) 
 	respondWithJSON(w, http.StatusOK, player)
 }
 
-func (h *PlayerHandler) CreatePlayer(w http.ResponseWriter, r *http.Request) {
+func (h *PlayerHandler) handleCreatePlayer(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Name 		string 	`json:"name"`
 		MatchType 	string	`json:"match_type"`
@@ -72,5 +85,85 @@ func (h *PlayerHandler) CreatePlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	player, err := 
+	player, err := h.playerService.CreatePlayer(r.Context(), body.Name, body.MatchType, body.Season)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not create player", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, player)
+}
+
+func (h *PlayerHandler) handleEditPlayerName(w http.ResponseWriter, r *http.Request) {
+	playerID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "invalid player id", err)
+		return
+	}
+
+	var body struct {
+		Name string `json:"name"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		respondWithError(w, http.StatusBadRequest, "invalid request body", err)
+		return
+	}
+
+	player, err := h.playerService.EditPlayerName(r.Context(), playerID, body.Name)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not change player name", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, player)
+}
+
+func (h *PlayerHandler) handleDeletePlayer(w http.ResponseWriter, r *http.Request) {
+	playerID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "invalid player id", err)
+		return
+	}
+
+	if err := h.playerService.DeletePlayer(r.Context(), playerID); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not delete character", err)
+		return
+	}
+	
+	respondWithJSON(w, http.StatusNoContent, "")
+}
+
+func (h *PlayerHandler) handleListRoster(w http.ResponseWriter, r *http.Request) {
+	roster, err := h.playerService.ListRoster(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "failed to load roster", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, roster)
+}
+
+func (h *PlayerHandler) handleListSeasonRoster(w http.ResponseWriter, r *http.Request) {
+	// Query params
+	matchType := r.URL.Query().Get("match_type")
+	if matchType == "" {
+		respondWithError(w, http.StatusBadRequest, "match_type is required", errors.New(""))
+		return
+	}
+
+	seasonStr := r.URL.Query().Get("season")
+	season, err := strconv.Atoi(seasonStr)
+	if err != nil || season < 1 {
+		respondWithError(w, http.StatusBadRequest, "season must be a positive number", err)
+		return
+	}
+
+	roster, err := h.playerService.ListSeasonalRoster(r.Context(), matchType, season)
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "roster not found for season", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, roster)
 }

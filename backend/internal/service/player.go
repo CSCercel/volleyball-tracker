@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/cscercel/volleyball-tracker/internal/db"
@@ -95,7 +97,16 @@ func (s *PlayerService) GetPlayerSeason(
 
 	stats, err := s.queries.GetPlayerSeasonalStats(ctx, params)
 	if err != nil {
-		return PlayerWithStats{}, fmt.Errorf("could not load player stats: %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			// The player exists but has no stats for given match_type and season, create a placeholder here
+			stats = db.PlayerStat{
+				PlayerID: playerID,
+				MatchType: match_type,
+				Season: int32(season),
+			}
+		} else {
+			return PlayerWithStats{}, fmt.Errorf("could not load player stats: %w", err)
+		}
 	}
 
 	player_stats := []PlayerStats{ComputePlayerStats(stats)}
@@ -114,7 +125,7 @@ func (s *PlayerService) CreatePlayer(
 		return PlayerWithStats{}, fmt.Errorf("could not create player: %w", err)		
 	}
 
-	// Initialize stats (TODO remove initialization of stats will handle this in match registration)
+	// Initialize stats for season at moment of creation of player (player will have at least one stat)
 	params := db.CreatePlayerStatsParams{
 		PlayerID: player.ID,
 		MatchType: match_type,
@@ -194,6 +205,7 @@ func (s *PlayerService) ListSeasonalRoster(
 
 	players := []PlayerWithStats{}
 
+	// Loop keeping only players that took part in the match_type/season combo
 	for i := range stats {
 		id := stats[i].PlayerID
 		if name, ok := nameMap[id]; ok {
