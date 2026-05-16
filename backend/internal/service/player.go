@@ -39,11 +39,11 @@ func ComputePlayerStats(stats db.PlayerStat) PlayerStats {
 	efficiency_ratio := 0.0
 
 	if played > 0 {
-		winloss_ratio = float64(stats.Wins / played)
+		winloss_ratio = float64(stats.Wins) / float64(played)
 	}
 
 	if stats.Conceded > 0 {
-		efficiency_ratio = float64(stats.Scored / stats.Conceded)
+		efficiency_ratio = float64(stats.Scored) / float64(stats.Conceded)
 	}
 
 	return PlayerStats{
@@ -68,8 +68,8 @@ func (s *PlayerService) GetPlayerCareer(ctx context.Context, playerID uuid.UUID)
 	}
 
 	player_stats := []PlayerStats{}
-	for i, stat := range stats {
-		player_stats[i] = ComputePlayerStats(stat)	
+	for _, stat := range stats {
+		player_stats = append(player_stats, ComputePlayerStats(stat))
 	}
 
 	return PlayerWithStats{
@@ -114,7 +114,7 @@ func (s *PlayerService) CreatePlayer(
 		return PlayerWithStats{}, fmt.Errorf("could not create player: %w", err)		
 	}
 
-	// Initialize stats
+	// Initialize stats (TODO remove initialization of stats will handle this in match registration)
 	params := db.CreatePlayerStatsParams{
 		PlayerID: player.ID,
 		MatchType: match_type,
@@ -198,7 +198,8 @@ func (s *PlayerService) ListSeasonalRoster(
 		id := stats[i].PlayerID
 		if name, ok := nameMap[id]; ok {
 			player_stats := []PlayerStats{ComputePlayerStats(stats[i])}
-			players[i] = PlayerWithStats{PlayerName: name, PlayerStats: player_stats}	
+			player := PlayerWithStats{PlayerName: name, PlayerStats: player_stats}	
+			players = append(players, player)
 		}
 	}
 
