@@ -60,7 +60,9 @@ func main() {
 		playerHandler.RegisterRoutes(r)
 	})
 
-	r.Get("/healthz", handler.HandleHealth)
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("healthy"))
+	})
 
 	// Start server
 	srv := &http.Server{

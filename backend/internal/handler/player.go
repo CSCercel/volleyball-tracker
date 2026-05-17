@@ -12,11 +12,11 @@ import (
 )
 
 type PlayerHandler struct {
-	playerService	*service.PlayerService
+	service	*service.PlayerService
 }
 
-func NewPlayerHandler(playerService *service.PlayerService) *PlayerHandler {
-	return &PlayerHandler{playerService: playerService}
+func NewPlayerHandler(service *service.PlayerService) *PlayerHandler {
+	return &PlayerHandler{service: service}
 }
 
 func (h *PlayerHandler) RegisterRoutes(r chi.Router) {
@@ -38,7 +38,7 @@ func (h *PlayerHandler) handleGetPlayerCareer(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	player, err := h.playerService.GetPlayerCareer(r.Context(), playerID)
+	player, err := h.service.GetPlayerCareer(r.Context(), playerID)
 	if err != nil {
 		respondWithError(w, http.StatusNotFound, "player not found", err)
 		return
@@ -68,7 +68,7 @@ func (h *PlayerHandler) handleGetPlayerSeason(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	player, err := h.playerService.GetPlayerSeason(r.Context(), playerID, matchType, season)
+	player, err := h.service.GetPlayerSeason(r.Context(), playerID, matchType, season)
 	if err != nil {
 		respondWithError(w, http.StatusNotFound, "player not found", err)
 		return
@@ -89,7 +89,7 @@ func (h *PlayerHandler) handleCreatePlayer(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	player, err := h.playerService.CreatePlayer(r.Context(), body.Name, body.MatchType, body.Season)
+	player, err := h.service.CreatePlayer(r.Context(), body.Name, body.MatchType, body.Season)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not create player", err)
 		return
@@ -114,7 +114,7 @@ func (h *PlayerHandler) handleEditPlayerName(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	player, err := h.playerService.EditPlayerName(r.Context(), playerID, body.Name)
+	player, err := h.service.EditPlayerName(r.Context(), playerID, body.Name)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not change player name", err)
 		return
@@ -130,7 +130,7 @@ func (h *PlayerHandler) handleDeletePlayer(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := h.playerService.DeletePlayer(r.Context(), playerID); err != nil {
+	if err := h.service.DeletePlayer(r.Context(), playerID); err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not delete character", err)
 		return
 	}
@@ -139,7 +139,7 @@ func (h *PlayerHandler) handleDeletePlayer(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *PlayerHandler) handleListRoster(w http.ResponseWriter, r *http.Request) {
-	roster, err := h.playerService.ListRoster(r.Context())
+	roster, err := h.service.ListRoster(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "failed to load roster", err)
 		return
@@ -163,7 +163,7 @@ func (h *PlayerHandler) handleListSeasonRoster(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	roster, err := h.playerService.ListSeasonalRoster(r.Context(), matchType, season)
+	roster, err := h.service.ListSeasonalRoster(r.Context(), matchType, season)
 	if err != nil {
 		respondWithError(w, http.StatusNotFound, "roster not found for season", err)
 		return
