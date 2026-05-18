@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/cscercel/volleyball-tracker/internal/service"
 	"github.com/go-chi/chi/v5"
@@ -31,6 +32,15 @@ func (h *PlayerHandler) RegisterRoutes(r chi.Router) {
 	})
 }
 
+
+// @Summary      Get Player Career
+// @Tags         players
+// @Produce      json
+// @Param        id   path      string  true  "Player ID"
+// @Success      200  {array}   service.PlayerWithStats
+// @Failure      400  {object}  object{error=string}
+// @Failure      404  {object}  object{error=string}
+// @Router       /api/v1/players/{id}/career [get]
 func (h *PlayerHandler) handleGetPlayerCareer(w http.ResponseWriter, r *http.Request) {
 	playerID, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -47,6 +57,16 @@ func (h *PlayerHandler) handleGetPlayerCareer(w http.ResponseWriter, r *http.Req
 	respondWithJSON(w, http.StatusOK, player)
 }
 
+// @Summary      Get Player Season
+// @Tags         players
+// @Produce      json
+// @Param        id   		path  		string  true  "Player ID"
+// @Param        match_type query  		string  true  "Match Type"
+// @Param        season   	query      	integer true  "Season"
+// @Success      200  		{array}   	service.PlayerWithStats
+// @Failure      400  		{object}  	object{error=string}
+// @Failure      404  		{object}  	object{error=string}
+// @Router       /api/v1/players/{id}/season [get]
 func (h *PlayerHandler) handleGetPlayerSeason(w http.ResponseWriter, r *http.Request) {
 	playerID, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -77,6 +97,14 @@ func (h *PlayerHandler) handleGetPlayerSeason(w http.ResponseWriter, r *http.Req
 	respondWithJSON(w, http.StatusOK, player)
 }
 
+// @Summary      Create Player
+// @Tags         players
+// @Produce      json
+// @Param        body body      object{name=string,match_type=string,season=int} true "Player Body"
+// @Success      201  {array}   service.PlayerWithStats
+// @Failure      400  {object}  object{error=string}
+// @Failure      500  {object}  object{error=string}
+// @Router       /api/v1/players [post]
 func (h *PlayerHandler) handleCreatePlayer(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Name 		string 	`json:"name"`
@@ -89,6 +117,17 @@ func (h *PlayerHandler) handleCreatePlayer(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	// Check Match Type and Season before creating player
+	if body.MatchType != "indoor" && body.MatchType != "beach" {
+		respondWithError(w, http.StatusBadRequest, "invalid match type provided", errors.New(""))
+		return
+	}
+
+	if body.Season != time.Now().UTC().Year() {
+		respondWithError(w, http.StatusBadRequest, "invalid season provided", errors.New(""))
+		return
+	}
+
 	player, err := h.service.CreatePlayer(r.Context(), body.Name, body.MatchType, body.Season)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not create player", err)
@@ -98,6 +137,17 @@ func (h *PlayerHandler) handleCreatePlayer(w http.ResponseWriter, r *http.Reques
 	respondWithJSON(w, http.StatusCreated, player)
 }
 
+// @Summary      Edit Player Name
+// @Description  Updates the name of an existing player by their UUID
+// @Tags         players
+// @Accept       json
+// @Produce      json
+// @Param        id   path      string                true  "Player UUID" format(uuid)
+// @Param        body body      object{name=string}   true  "New Player Name"
+// @Success      200  {object}  service.PlayerWithStats
+// @Failure      400  {object}  object{error=string}
+// @Failure      500  {object}  object{error=string}
+// @Router       /api/v1/players/{id}/name [put]
 func (h *PlayerHandler) handleEditPlayerName(w http.ResponseWriter, r *http.Request) {
 	playerID, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -123,6 +173,14 @@ func (h *PlayerHandler) handleEditPlayerName(w http.ResponseWriter, r *http.Requ
 	respondWithJSON(w, http.StatusOK, player)
 }
 
+// @Summary      Delete Player
+// @Tags         players
+// @Produce      json
+// @Param        id   path      string                true  "Player UUID" format(uuid)
+// @Success      204  
+// @Failure      400  {object}  object{error=string}
+// @Failure      500  {object}  object{error=string}
+// @Router       /api/v1/players/{id} [delete]
 func (h *PlayerHandler) handleDeletePlayer(w http.ResponseWriter, r *http.Request) {
 	playerID, err := uuid.Parse(chi.URLParam(r, "id"))
 	if err != nil {
@@ -138,6 +196,12 @@ func (h *PlayerHandler) handleDeletePlayer(w http.ResponseWriter, r *http.Reques
 	respondWithJSON(w, http.StatusNoContent, "")
 }
 
+// @Summary      List Roster
+// @Tags         players
+// @Produce      json
+// @Success      200  {array}   object{id=string, name=string}
+// @Failure      500  {object}  object{error=string}
+// @Router       /api/v1/players/roster [get]
 func (h *PlayerHandler) handleListRoster(w http.ResponseWriter, r *http.Request) {
 	roster, err := h.service.ListRoster(r.Context())
 	if err != nil {
@@ -148,6 +212,15 @@ func (h *PlayerHandler) handleListRoster(w http.ResponseWriter, r *http.Request)
 	respondWithJSON(w, http.StatusOK, roster)
 }
 
+// @Summary      List Seasonal Roster
+// @Tags         players
+// @Produce      json
+// @Param        match_type query  		string  true  "Match Type"
+// @Param        season   	query      	integer true  "Season"
+// @Success      200  		{array}   	service.PlayerWithStats
+// @Failure      400  		{object}  	object{error=string}
+// @Failure      404  		{object}  	object{error=string}
+// @Router       /api/v1/players/roster/season [get]
 func (h *PlayerHandler) handleListSeasonRoster(w http.ResponseWriter, r *http.Request) {
 	// Query params
 	matchType := r.URL.Query().Get("match_type")

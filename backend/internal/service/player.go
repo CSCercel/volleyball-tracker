@@ -15,7 +15,16 @@ type PlayerService struct {
 }
 
 type PlayerStats struct {
-	Stats			db.PlayerStat	`json:"stats"`
+	StatsID			uuid.UUID		`json:"stats_id"`
+	MatchType		string			`json:"match_type"`
+	Season			int32			`json:"season"`
+	Wins			int32			`json:"wins"`
+	Losses			int32			`json:"losses"`
+	Otl				int32			`json:"otl"`
+	Streak			int32			`json:"streak"`
+	LongestStreak	int32			`json:"longest_streak"`
+	Scored			int32			`json:"scored"`
+	Conceded		int32			`json:"conceded"`
 	Played			int32			`json:"played"`
 	WinLossRatio	float64			`json:"winloss_ratio"`
 	EfficiencyRatio	float64			`json:"efficiency_ratio"`
@@ -23,6 +32,7 @@ type PlayerStats struct {
 }
 
 type PlayerWithStats struct {
+	PlayerID	string			`json:"player_id"`
 	PlayerName	string			`json:"player_name"`
 	PlayerStats	[]PlayerStats	`json:"player_stats"`
 }
@@ -48,8 +58,23 @@ func ComputePlayerStats(stats db.PlayerStat) PlayerStats {
 		efficiency_ratio = float64(stats.Scored) / float64(stats.Conceded)
 	}
 
+
+	// Update longest_streak
+	if stats.Streak > stats.LongestStreak {
+		stats.LongestStreak = stats.Streak
+	}
+
 	return PlayerStats{
-		Stats: stats,
+		StatsID: stats.ID,
+		MatchType: stats.MatchType,
+		Season: stats.Season,
+		Wins: stats.Wins,
+		Losses: stats.Losses,
+		Otl: stats.Otl,
+		Streak: stats.Streak,
+		LongestStreak: stats.LongestStreak,
+		Scored: stats.Scored,
+		Conceded: stats.Conceded,
 		Played: int32(played),
 		Points: int32(points),
 		WinLossRatio: winloss_ratio,

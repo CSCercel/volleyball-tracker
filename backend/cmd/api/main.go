@@ -15,8 +15,23 @@ import (
 	"github.com/cscercel/volleyball-tracker/internal/handler"
 	"github.com/cscercel/volleyball-tracker/internal/repository"
 	"github.com/cscercel/volleyball-tracker/internal/service"
+
+	_ "github.com/cscercel/volleyball-tracker/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+
+// @title           Volleyball Tracker API
+// @version         1.0.0
+// @description     API for managing volleyball games played with friends.
+
+// @host            localhost:8080
+// @BasePath        /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by your JWT token
 func main() {
 
 	// Load Config
@@ -60,9 +75,13 @@ func main() {
 		playerHandler.RegisterRoutes(r)
 	})
 
+	// Small `Mandatory` test route
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("healthy"))
 	})
+
+	// Docs
+	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	// Start server
 	srv := &http.Server{
