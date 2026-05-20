@@ -49,9 +49,9 @@ UPDATE player_stats
 SET 
     wins = wins + 1,
     streak = streak + 1,
-    longest_streak = $3,
-    scored = $4,
-    conceded = $5,
+    longest_streak = $4,
+    scored = $5,
+    conceded = $6,
     updated_at = NOW()
 WHERE player_id = $1
 AND match_type = $2

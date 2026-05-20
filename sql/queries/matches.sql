@@ -21,10 +21,20 @@ INSERT INTO matches (match_type, season)
 VALUES ($1, $2)
 RETURNING *;
 
--- name: AddPlayerToMatch :many
+-- name: AddPlayerToMatch :one
 INSERT INTO match_players (match_id, player_id, color)
 VALUES ($1, $2, $3)
 RETURNING *;
+
+-- name: GetBlueTeamFromMatch :many
+SELECT * FROM match_players
+WHERE match_id = $1
+AND color = "blue";
+
+-- name: GetRedTeamFromMatch :many
+SELECT * FROM match_players
+WHERE match_id = $1
+AND color = "red";
 
 -- name: RegisterMatch :one
 UPDATE matches

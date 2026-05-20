@@ -154,13 +154,11 @@ func (s *PlayerService) CreatePlayer(ctx context.Context, playerName string) (Pl
 	player_stats := []PlayerStats{}
 
 	for _, match_type := range match_types {
-		params := db.CreatePlayerStatsParams{
+		stats, err := s.queries.CreatePlayerStats(ctx, db.CreatePlayerStatsParams{
 			PlayerID: player.ID,
 			MatchType: match_type,
 			Season: int32(time.Now().UTC().Year()),
-		}
-
-		stats, err := s.queries.CreatePlayerStats(ctx, params)
+		})
 		if err != nil {
 			return PlayerWithStats{}, fmt.Errorf("could not initialize player stats for type %s: %w", match_type, err)
 		}

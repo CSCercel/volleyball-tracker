@@ -11,18 +11,20 @@ import (
 )
 
 type Querier interface {
-	AddPlayerToMatch(ctx context.Context, arg AddPlayerToMatchParams) ([]MatchPlayer, error)
+	AddPlayerToMatch(ctx context.Context, arg AddPlayerToMatchParams) (MatchPlayer, error)
 	CreateMatch(ctx context.Context, arg CreateMatchParams) (Match, error)
 	CreatePlayer(ctx context.Context, name string) (Player, error)
 	CreatePlayerStats(ctx context.Context, arg CreatePlayerStatsParams) (PlayerStat, error)
 	DeleteDraft(ctx context.Context, id uuid.UUID) error
 	DeletePlayer(ctx context.Context, id uuid.UUID) error
 	EditPlayerName(ctx context.Context, arg EditPlayerNameParams) (Player, error)
+	GetBlueTeamFromMatch(ctx context.Context, matchID uuid.UUID) ([]MatchPlayer, error)
 	GetDrafts(ctx context.Context) ([]Match, error)
 	GetMatch(ctx context.Context, id uuid.UUID) (Match, error)
 	GetPlayer(ctx context.Context, id uuid.UUID) (Player, error)
 	GetPlayerSeasonalStats(ctx context.Context, arg GetPlayerSeasonalStatsParams) (PlayerStat, error)
 	GetPlayerStats(ctx context.Context, playerID uuid.UUID) ([]PlayerStat, error)
+	GetRedTeamFromMatch(ctx context.Context, matchID uuid.UUID) ([]MatchPlayer, error)
 	GetRegisteredMatches(ctx context.Context) ([]Match, error)
 	GetSeasonMatches(ctx context.Context, arg GetSeasonMatchesParams) ([]Match, error)
 	ListPlayers(ctx context.Context) ([]Player, error)

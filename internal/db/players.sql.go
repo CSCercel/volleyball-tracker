@@ -354,9 +354,9 @@ UPDATE player_stats
 SET 
     wins = wins + 1,
     streak = streak + 1,
-    longest_streak = $3,
-    scored = $4,
-    conceded = $5,
+    longest_streak = $4,
+    scored = $5,
+    conceded = $6,
     updated_at = NOW()
 WHERE player_id = $1
 AND match_type = $2
@@ -367,6 +367,7 @@ RETURNING id, player_id, match_type, season, wins, losses, otl, streak, longest_
 type UpdatePlayerStatsWinParams struct {
 	PlayerID      uuid.UUID `json:"player_id"`
 	MatchType     string    `json:"match_type"`
+	Season        int32     `json:"season"`
 	LongestStreak int32     `json:"longest_streak"`
 	Scored        int32     `json:"scored"`
 	Conceded      int32     `json:"conceded"`
@@ -376,6 +377,7 @@ func (q *Queries) UpdatePlayerStatsWin(ctx context.Context, arg UpdatePlayerStat
 	row := q.db.QueryRow(ctx, updatePlayerStatsWin,
 		arg.PlayerID,
 		arg.MatchType,
+		arg.Season,
 		arg.LongestStreak,
 		arg.Scored,
 		arg.Conceded,

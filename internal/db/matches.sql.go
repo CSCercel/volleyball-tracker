@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const addPlayerToMatch = `-- name: AddPlayerToMatch :many
+const addPlayerToMatch = `-- name: AddPlayerToMatch :one
 INSERT INTO match_players (match_id, player_id, color)
 VALUES ($1, $2, $3)
 RETURNING id, match_id, player_id, color
@@ -23,29 +23,16 @@ type AddPlayerToMatchParams struct {
 	Color    string    `json:"color"`
 }
 
-func (q *Queries) AddPlayerToMatch(ctx context.Context, arg AddPlayerToMatchParams) ([]MatchPlayer, error) {
-	rows, err := q.db.Query(ctx, addPlayerToMatch, arg.MatchID, arg.PlayerID, arg.Color)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []MatchPlayer{}
-	for rows.Next() {
-		var i MatchPlayer
-		if err := rows.Scan(
-			&i.ID,
-			&i.MatchID,
-			&i.PlayerID,
-			&i.Color,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) AddPlayerToMatch(ctx context.Context, arg AddPlayerToMatchParams) (MatchPlayer, error) {
+	row := q.db.QueryRow(ctx, addPlayerToMatch, arg.MatchID, arg.PlayerID, arg.Color)
+	var i MatchPlayer
+	err := row.Scan(
+		&i.ID,
+		&i.MatchID,
+		&i.PlayerID,
+		&i.Color,
+	)
+	return i, err
 }
 
 const createMatch = `-- name: CreateMatch :one
@@ -84,6 +71,37 @@ AND id = $1
 func (q *Queries) DeleteDraft(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteDraft, id)
 	return err
+}
+
+const getBlueTeamFromMatch = `-- name: GetBlueTeamFromMatch :many
+SELECT id, match_id, player_id, color FROM match_players
+WHERE match_id = $1
+AND color = "blue"
+`
+
+func (q *Queries) GetBlueTeamFromMatch(ctx context.Context, matchID uuid.UUID) ([]MatchPlayer, error) {
+	rows, err := q.db.Query(ctx, getBlueTeamFromMatch, matchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []MatchPlayer{}
+	for rows.Next() {
+		var i MatchPlayer
+		if err := rows.Scan(
+			&i.ID,
+			&i.MatchID,
+			&i.PlayerID,
+			&i.Color,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getDrafts = `-- name: GetDrafts :many
@@ -139,6 +157,37 @@ func (q *Queries) GetMatch(ctx context.Context, id uuid.UUID) (Match, error) {
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getRedTeamFromMatch = `-- name: GetRedTeamFromMatch :many
+SELECT id, match_id, player_id, color FROM match_players
+WHERE match_id = $1
+AND color = "red"
+`
+
+func (q *Queries) GetRedTeamFromMatch(ctx context.Context, matchID uuid.UUID) ([]MatchPlayer, error) {
+	rows, err := q.db.Query(ctx, getRedTeamFromMatch, matchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []MatchPlayer{}
+	for rows.Next() {
+		var i MatchPlayer
+		if err := rows.Scan(
+			&i.ID,
+			&i.MatchID,
+			&i.PlayerID,
+			&i.Color,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getRegisteredMatches = `-- name: GetRegisteredMatches :many
@@ -229,8 +278,8 @@ RETURNING id, match_type, season, blue_score, red_score, is_completed, created_a
 
 type RegisterMatchParams struct {
 	ID        uuid.UUID `json:"id"`
-	BlueScore *int32    `json:"blue_score"`
-	RedScore  *int32    `json:"red_score"`
+	BlueScore int32     `json:"blue_score"`
+	RedScore  int32     `json:"red_score"`
 }
 
 func (q *Queries) RegisterMatch(ctx context.Context, arg RegisterMatchParams) (Match, error) {
